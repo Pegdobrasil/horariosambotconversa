@@ -804,6 +804,7 @@ body::before {
   border-bottom: 1px solid rgba(148, 163, 184, 0.10);
   background: rgba(15, 23, 42, 0.48);
   transition: 0.22s ease;
+  position: relative;
 }
 
 .day:hover {
@@ -815,20 +816,59 @@ body::before {
   background: rgba(15, 23, 42, 0.20);
 }
 
-.day.today {
+.day.open {
   background:
-    radial-gradient(circle at top right, rgba(0, 200, 255, 0.24), transparent 55%),
-    rgba(0, 92, 255, 0.18);
-  outline: 2px solid rgba(0, 200, 255, 0.70);
-  outline-offset: -2px;
+    radial-gradient(circle at top right, rgba(0, 200, 255, 0.12), transparent 55%),
+    rgba(15, 23, 42, 0.58);
 }
 
 .day.closed {
   background:
-    radial-gradient(circle at top right, rgba(250, 204, 21, 0.12), transparent 55%),
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.14), transparent 55%),
     rgba(127, 29, 29, 0.30);
-  outline: 1px solid rgba(250, 204, 21, 0.42);
+  outline: 1px solid rgba(239, 68, 68, 0.38);
   outline-offset: -1px;
+}
+
+.day.holiday {
+  background:
+    radial-gradient(circle at top right, rgba(250, 204, 21, 0.20), transparent 55%),
+    rgba(113, 63, 18, 0.40);
+  outline: 1px solid rgba(250, 204, 21, 0.55);
+  outline-offset: -1px;
+}
+
+.day.today.open {
+  background:
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.32), transparent 55%),
+    rgba(20, 83, 45, 0.52);
+  outline: 2px solid rgba(34, 197, 94, 0.85);
+  outline-offset: -2px;
+  box-shadow:
+    inset 0 0 24px rgba(34, 197, 94, 0.16),
+    0 0 22px rgba(34, 197, 94, 0.18);
+}
+
+.day.today.closed {
+  background:
+    radial-gradient(circle at top right, rgba(239, 68, 68, 0.30), transparent 55%),
+    rgba(127, 29, 29, 0.55);
+  outline: 2px solid rgba(239, 68, 68, 0.80);
+  outline-offset: -2px;
+  box-shadow:
+    inset 0 0 24px rgba(239, 68, 68, 0.16),
+    0 0 22px rgba(239, 68, 68, 0.16);
+}
+
+.day.today.holiday {
+  background:
+    radial-gradient(circle at top right, rgba(250, 204, 21, 0.36), transparent 55%),
+    rgba(113, 63, 18, 0.62);
+  outline: 2px solid rgba(250, 204, 21, 0.90);
+  outline-offset: -2px;
+  box-shadow:
+    inset 0 0 24px rgba(250, 204, 21, 0.16),
+    0 0 22px rgba(250, 204, 21, 0.16);
 }
 
 .day-number {
@@ -844,8 +884,44 @@ body::before {
   line-height: 1.25;
 }
 
+.day.open .day-info {
+  color: #bfdbfe;
+}
+
 .day.closed .day-info {
+  color: #fecaca;
+}
+
+.day.holiday .day-info {
   color: #fef3c7;
+}
+
+.day-tag {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.day-tag.open {
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.28);
+}
+
+.day-tag.closed {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+.day-tag.holiday {
+  color: #fef3c7;
+  background: rgba(250, 204, 21, 0.12);
+  border-color: rgba(250, 204, 21, 0.34);
 }
 
 .footer {
@@ -897,7 +973,8 @@ body::before {
     padding: 5px;
   }
 
-  .day-info {
+  .day-info,
+  .day-tag {
     display: none;
   }
 
@@ -963,24 +1040,38 @@ def montar_calendario_html(calendario):
             else:
                 classes = ["day"]
 
-                if dia["data"] == hoje:
-                    classes.append("today")
+                if dia["loja_abre"] is True:
+                    classes.append("open")
 
                 if dia["loja_abre"] is False:
                     classes.append("closed")
 
+                if dia["nome_feriado"]:
+                    classes.append("holiday")
+
+                if dia["data"] == hoje:
+                    classes.append("today")
+
                 classe = " ".join(classes)
 
                 info = dia["funcionamento_previsto"]
+                tag_classe = "open"
+                tag_texto = "Aberto"
 
                 if dia["nome_feriado"]:
                     info = dia["nome_feriado"]
+                    tag_classe = "holiday"
+                    tag_texto = "Feriado"
+                elif dia["loja_abre"] is False:
+                    tag_classe = "closed"
+                    tag_texto = "Fechado"
 
                 calendario_html += f"""
                 <div class="{classe}">
                   <div class="day-number">{dia["dia"]}</div>
                   <div class="day-info">{dia["dia_semana"]}</div>
                   <div class="day-info">{info}</div>
+                  <div class="day-tag {tag_classe}">{tag_texto}</div>
                 </div>
                 """
 
@@ -1096,18 +1187,33 @@ async function atualizarCalendarioPeg() {
         } else {
           let classes = "day";
 
-          if (dia.data === hoje) {
-            classes += " today";
+          if (dia.loja_abre === true) {
+            classes += " open";
           }
 
           if (dia.loja_abre === false) {
             classes += " closed";
           }
 
+          if (dia.nome_feriado) {
+            classes += " holiday";
+          }
+
+          if (dia.data === hoje) {
+            classes += " today";
+          }
+
           let info = dia.funcionamento_previsto;
+          let tagClasse = "open";
+          let tagTexto = "Aberto";
 
           if (dia.nome_feriado) {
             info = dia.nome_feriado;
+            tagClasse = "holiday";
+            tagTexto = "Feriado";
+          } else if (dia.loja_abre === false) {
+            tagClasse = "closed";
+            tagTexto = "Fechado";
           }
 
           html += `
@@ -1115,6 +1221,7 @@ async function atualizarCalendarioPeg() {
               <div class="day-number">${dia.dia}</div>
               <div class="day-info">${dia.dia_semana}</div>
               <div class="day-info">${info}</div>
+              <div class="day-tag ${tagClasse}">${tagTexto}</div>
             </div>
           `;
         }
