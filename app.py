@@ -7,9 +7,9 @@ import os
 
 app = Flask(__name__)
 
-LOGO_PEG_URL = "https://magazord-public.s3.sa-east-1.amazonaws.com/pegdobrasil/img/2025/03/banner/138072/medium/logo-vazia.png"
-
 TIMEZONE_BRASILIA = ZoneInfo("America/Sao_Paulo")
+
+LOGO_PEG_URL = "https://magazord-public.s3.sa-east-1.amazonaws.com/pegdobrasil/img/2025/03/banner/138072/medium/logo-vazia.png"
 
 DIAS_SEMANA = {
     0: "segunda-feira",
@@ -77,7 +77,7 @@ def obter_datas_fechadas(ano):
     sexta_feira_santa = pascoa - timedelta(days=2)
     corpus_christi = pascoa + timedelta(days=60)
 
-    return {
+    datas = {
         date(ano, 1, 1): {
             "nome": "Confraternização Universal",
             "tipo": "feriado_nacional"
@@ -128,6 +128,8 @@ def obter_datas_fechadas(ano):
         }
     }
 
+    return datas
+
 
 def verificar_data_fechada(data_consulta):
     datas_fechadas = obter_datas_fechadas(data_consulta.year)
@@ -141,7 +143,7 @@ def verificar_data_fechada(data_consulta):
             "eh_data_especial": item["tipo"] == "data_especial",
             "nome_feriado": item["nome"],
             "tipo_fechamento": item["tipo"],
-            "motivo_fechamento": item["nome"]
+            "motivo_fechamento": f"{item['nome']}"
         }
 
     return {
@@ -514,15 +516,15 @@ body::before {
 }
 
 .brand-mark {
-  width: 82px;
-  height: 82px;
-  border-radius: 22px;
+  width: 74px;
+  height: 74px;
+  border-radius: 20px;
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(0, 200, 255, 0.24);
   box-shadow: 0 0 28px rgba(0, 200, 255, 0.25);
-  padding: 11px;
+  padding: 10px;
 }
 
 .brand-logo {
@@ -574,6 +576,7 @@ body::before {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.35);
     opacity: 0.65;
@@ -624,6 +627,14 @@ body::before {
   text-shadow:
     0 0 22px rgba(0, 200, 255, 0.22),
     0 0 52px rgba(0, 92, 255, 0.18);
+  transition: transform 0.18s ease, text-shadow 0.18s ease;
+}
+
+.clock.tick {
+  transform: scale(1.015);
+  text-shadow:
+    0 0 28px rgba(0, 200, 255, 0.34),
+    0 0 70px rgba(0, 92, 255, 0.28);
 }
 
 .status-badge {
@@ -833,9 +844,9 @@ body::before {
   }
 
   .brand-mark {
-    width: 70px;
-    height: 70px;
-    border-radius: 20px;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
   }
 
   .clock-card,
@@ -889,12 +900,11 @@ def endpoint_cards():
     return html
 
 
-def gerar_calendario_visual_html(calendario):
+def montar_calendario_html(calendario):
     if not calendario:
         return ""
 
     nomes_dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
-    hoje = datetime.now(TIMEZONE_BRASILIA).date().strftime("%Y-%m-%d")
 
     calendario_html = f"""
     <section class="panel">
@@ -909,6 +919,8 @@ def gerar_calendario_visual_html(calendario):
 
     for nome in nomes_dias:
         calendario_html += f'<div class="day-name">{nome}</div>'
+
+    hoje = datetime.now(TIMEZONE_BRASILIA).date().strftime("%Y-%m-%d")
 
     for semana in calendario["semanas"]:
         for dia in semana:
@@ -946,7 +958,7 @@ def gerar_calendario_visual_html(calendario):
     return calendario_html
 
 
-def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, realtime=False):
+def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, tempo_real=False):
     json_formatado = json.dumps(dados, ensure_ascii=False, indent=2)
 
     data_extenso = dados.get("data_extenso") or dados.get("hoje", {}).get("data_extenso") or "Consulta PEG"
@@ -967,12 +979,12 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
     else:
         status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Consulta disponível"
 
-    calendario_html = gerar_calendario_visual_html(calendario)
+    calendario_html = montar_calendario_html(calendario)
 
-    script_realtime = ""
+    script_tempo_real = ""
 
-    if realtime:
-        script_realtime = """
+    if tempo_real:
+        script_tempo_real = """
 <script>
 async function atualizarHorarioPeg() {
   try {
@@ -990,6 +1002,9 @@ async function atualizarHorarioPeg() {
 
     if (horaEl) {
       horaEl.textContent = dados.hora_atual;
+      horaEl.classList.remove("tick");
+      void horaEl.offsetWidth;
+      horaEl.classList.add("tick");
     }
 
     if (statusEl) {
@@ -1126,7 +1141,7 @@ setInterval(atualizarCalendarioPeg, 60000);
         <div class="main-grid">
           <div class="clock-card">
             <div class="label">Consulta</div>
-            <div id="dataAtualPeg" class="date">{data_extenso}</div>
+            <div id="dataAtualPeg" class="date">{data_extenso.capitalize()}</div>
             <div id="horaAtualPeg" class="clock">{hora_atual}</div>
           </div>
 
@@ -1197,7 +1212,7 @@ setInterval(atualizarCalendarioPeg, 60000);
 
   </div>
 
-  {script_realtime}
+  {script_tempo_real}
 </body>
 </html>
 """
@@ -1205,9 +1220,9 @@ setInterval(atualizarCalendarioPeg, 60000);
     return Response(html, mimetype="text/html")
 
 
-def responder(dados, titulo, subtitulo, status_texto=None, calendario=None, realtime=False):
+def responder(dados, titulo, subtitulo, status_texto=None, calendario=None, tempo_real=False):
     if quer_visual():
-        return render_visual(titulo, subtitulo, dados, status_texto, calendario, realtime)
+        return render_visual(titulo, subtitulo, dados, status_texto, calendario, tempo_real)
     return jsonify(dados)
 
 
@@ -1223,7 +1238,7 @@ def index():
         dados,
         dados.get("mensagem_atendimento"),
         calendario_mes,
-        realtime=True
+        tempo_real=True
     )
 
 
@@ -1239,7 +1254,7 @@ def api_horario():
         "Consulta de data e hora atual da PEG",
         dados.get("mensagem_atendimento"),
         calendario_mes,
-        realtime=True
+        tempo_real=True
     )
 
 
@@ -1393,7 +1408,7 @@ def api_calendario_mes_atual():
         "Calendário operacional da PEG",
         f"{calendario_mes['total_dias']} dias no mês",
         calendario_mes,
-        realtime=True
+        tempo_real=True
     )
 
 
