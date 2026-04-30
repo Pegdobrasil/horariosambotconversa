@@ -77,7 +77,7 @@ def obter_datas_fechadas(ano):
     sexta_feira_santa = pascoa - timedelta(days=2)
     corpus_christi = pascoa + timedelta(days=60)
 
-    datas = {
+    return {
         date(ano, 1, 1): {
             "nome": "Confraternização Universal",
             "tipo": "feriado_nacional"
@@ -128,8 +128,6 @@ def obter_datas_fechadas(ano):
         }
     }
 
-    return datas
-
 
 def verificar_data_fechada(data_consulta):
     datas_fechadas = obter_datas_fechadas(data_consulta.year)
@@ -143,7 +141,7 @@ def verificar_data_fechada(data_consulta):
             "eh_data_especial": item["tipo"] == "data_especial",
             "nome_feriado": item["nome"],
             "tipo_fechamento": item["tipo"],
-            "motivo_fechamento": f"{item['nome']}"
+            "motivo_fechamento": item["nome"]
         }
 
     return {
@@ -568,6 +566,18 @@ body::before {
   border-radius: 50%;
   background: var(--peg-green);
   box-shadow: 0 0 16px rgba(34, 197, 94, 0.85);
+  animation: pulse 1.4s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.65;
+  }
 }
 
 .main-grid {
@@ -639,6 +649,31 @@ body::before {
   border-color: rgba(250, 204, 21, 0.42);
   background: rgba(250, 204, 21, 0.12);
   color: #fef9c3;
+}
+
+.hours-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.hours-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #dbeafe;
+  font-size: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.hours-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.hours-item span:first-child {
+  color: var(--peg-muted);
 }
 
 .panel {
@@ -854,7 +889,64 @@ def endpoint_cards():
     return html
 
 
-def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
+def gerar_calendario_visual_html(calendario):
+    if not calendario:
+        return ""
+
+    nomes_dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+    hoje = datetime.now(TIMEZONE_BRASILIA).date().strftime("%Y-%m-%d")
+
+    calendario_html = f"""
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Calendário de {calendario["mes_nome"]} de {calendario["ano"]}</h2>
+          <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
+        </div>
+      </div>
+      <div class="calendar-grid">
+    """
+
+    for nome in nomes_dias:
+        calendario_html += f'<div class="day-name">{nome}</div>'
+
+    for semana in calendario["semanas"]:
+        for dia in semana:
+            if dia is None:
+                calendario_html += '<div class="day empty"></div>'
+            else:
+                classes = ["day"]
+
+                if dia["data"] == hoje:
+                    classes.append("today")
+
+                if dia["loja_abre"] is False:
+                    classes.append("closed")
+
+                classe = " ".join(classes)
+
+                info = dia["funcionamento_previsto"]
+
+                if dia["nome_feriado"]:
+                    info = dia["nome_feriado"]
+
+                calendario_html += f"""
+                <div class="{classe}">
+                  <div class="day-number">{dia["dia"]}</div>
+                  <div class="day-info">{dia["dia_semana"]}</div>
+                  <div class="day-info">{info}</div>
+                </div>
+                """
+
+    calendario_html += """
+      </div>
+    </section>
+    """
+
+    return calendario_html
+
+
+def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, realtime=False):
     json_formatado = json.dumps(dados, ensure_ascii=False, indent=2)
 
     data_extenso = dados.get("data_extenso") or dados.get("hoje", {}).get("data_extenso") or "Consulta PEG"
@@ -875,59 +967,129 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
     else:
         status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Consulta disponível"
 
-    calendario_html = ""
+    calendario_html = gerar_calendario_visual_html(calendario)
 
-    if calendario:
-        nomes_dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+    script_realtime = ""
 
-        calendario_html += """
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h2 class="panel-title">Calendário visual</h2>
-              <p class="panel-subtitle">Dias de atendimento e datas fechadas</p>
+    if realtime:
+        script_realtime = """
+<script>
+async function atualizarHorarioPeg() {
+  try {
+    const resposta = await fetch("/api/horario", { cache: "no-store" });
+    const dados = await resposta.json();
+
+    const dataEl = document.getElementById("dataAtualPeg");
+    const horaEl = document.getElementById("horaAtualPeg");
+    const statusEl = document.getElementById("statusAtualPeg");
+    const jsonEl = document.getElementById("jsonAtualPeg");
+
+    if (dataEl) {
+      dataEl.textContent = dados.data_extenso;
+    }
+
+    if (horaEl) {
+      horaEl.textContent = dados.hora_atual;
+    }
+
+    if (statusEl) {
+      statusEl.textContent = dados.mensagem_atendimento;
+      statusEl.classList.remove("closed", "holiday");
+
+      if (dados.nome_feriado) {
+        statusEl.classList.add("holiday");
+      } else if (!dados.atendimento_aberto) {
+        statusEl.classList.add("closed");
+      }
+    }
+
+    if (jsonEl) {
+      jsonEl.textContent = JSON.stringify(dados, null, 2);
+    }
+  } catch (erro) {
+    console.log("Erro ao atualizar horário PEG", erro);
+  }
+}
+
+async function atualizarCalendarioPeg() {
+  try {
+    const resposta = await fetch("/api/calendario", { cache: "no-store" });
+    const dados = await resposta.json();
+
+    const painel = document.getElementById("calendarioAtualPeg");
+
+    if (!painel) {
+      return;
+    }
+
+    const nomesDias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+    const hoje = dados.hoje.data_atual;
+
+    let html = `
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Calendário de ${dados.mes_nome} de ${dados.ano}</h2>
+            <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
+          </div>
+        </div>
+        <div class="calendar-grid">
+    `;
+
+    nomesDias.forEach(nome => {
+      html += `<div class="day-name">${nome}</div>`;
+    });
+
+    dados.semanas.forEach(semana => {
+      semana.forEach(dia => {
+        if (!dia) {
+          html += `<div class="day empty"></div>`;
+        } else {
+          let classes = "day";
+
+          if (dia.data === hoje) {
+            classes += " today";
+          }
+
+          if (dia.loja_abre === false) {
+            classes += " closed";
+          }
+
+          let info = dia.funcionamento_previsto;
+
+          if (dia.nome_feriado) {
+            info = dia.nome_feriado;
+          }
+
+          html += `
+            <div class="${classes}">
+              <div class="day-number">${dia.dia}</div>
+              <div class="day-info">${dia.dia_semana}</div>
+              <div class="day-info">${info}</div>
             </div>
-          </div>
-          <div class="calendar-grid">
-        """
+          `;
+        }
+      });
+    });
 
-        for nome in nomes_dias:
-            calendario_html += f'<div class="day-name">{nome}</div>'
+    html += `
+        </div>
+      </section>
+    `;
 
-        hoje = datetime.now(TIMEZONE_BRASILIA).date().strftime("%Y-%m-%d")
+    painel.innerHTML = html;
+  } catch (erro) {
+    console.log("Erro ao atualizar calendário PEG", erro);
+  }
+}
 
-        for semana in calendario["semanas"]:
-            for dia in semana:
-                if dia is None:
-                    calendario_html += '<div class="day empty"></div>'
-                else:
-                    classes = ["day"]
+atualizarHorarioPeg();
+atualizarCalendarioPeg();
 
-                    if dia["data"] == hoje:
-                        classes.append("today")
-
-                    if dia["loja_abre"] is False:
-                        classes.append("closed")
-
-                    classe = " ".join(classes)
-
-                    info = dia["funcionamento_previsto"]
-
-                    if dia["nome_feriado"]:
-                        info = dia["nome_feriado"]
-
-                    calendario_html += f"""
-                    <div class="{classe}">
-                      <div class="day-number">{dia["dia"]}</div>
-                      <div class="day-info">{dia["dia_semana"]}</div>
-                      <div class="day-info">{info}</div>
-                    </div>
-                    """
-
-        calendario_html += """
-          </div>
-        </section>
-        """
+setInterval(atualizarHorarioPeg, 1000);
+setInterval(atualizarCalendarioPeg, 60000);
+</script>
+"""
 
     html = f"""
 <!DOCTYPE html>
@@ -964,14 +1126,36 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
         <div class="main-grid">
           <div class="clock-card">
             <div class="label">Consulta</div>
-            <div class="date">{data_extenso.capitalize()}</div>
-            <div class="clock">{hora_atual}</div>
+            <div id="dataAtualPeg" class="date">{data_extenso}</div>
+            <div id="horaAtualPeg" class="clock">{hora_atual}</div>
           </div>
 
           <div class="status-card">
             <div class="label">Status</div>
-            <div class="status-badge {badge_class}">
+            <div id="statusAtualPeg" class="status-badge {badge_class}">
               {status_final}
+            </div>
+
+            <div class="hours-list">
+              <div class="hours-item">
+                <span>Segunda a sexta</span>
+                <strong>09:00 às 18:00</strong>
+              </div>
+
+              <div class="hours-item">
+                <span>Sábado</span>
+                <strong>09:00 às 13:00</strong>
+              </div>
+
+              <div class="hours-item">
+                <span>Domingo</span>
+                <strong>Fechado</strong>
+              </div>
+
+              <div class="hours-item">
+                <span>Feriados cadastrados</span>
+                <strong>Fechado</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -993,7 +1177,9 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
       </div>
     </section>
 
-    {calendario_html}
+    <div id="calendarioAtualPeg">
+      {calendario_html}
+    </div>
 
     <section class="panel">
       <div class="panel-header">
@@ -1002,7 +1188,7 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
           <p class="panel-subtitle">Dados retornados pela API</p>
         </div>
       </div>
-      <pre class="json">{json_formatado}</pre>
+      <pre id="jsonAtualPeg" class="json">{json_formatado}</pre>
     </section>
 
     <div class="footer">
@@ -1010,6 +1196,8 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
     </div>
 
   </div>
+
+  {script_realtime}
 </body>
 </html>
 """
@@ -1017,31 +1205,41 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
     return Response(html, mimetype="text/html")
 
 
-def responder(dados, titulo, subtitulo, status_texto=None, calendario=None):
+def responder(dados, titulo, subtitulo, status_texto=None, calendario=None, realtime=False):
     if quer_visual():
-        return render_visual(titulo, subtitulo, dados, status_texto, calendario)
+        return render_visual(titulo, subtitulo, dados, status_texto, calendario, realtime)
     return jsonify(dados)
 
 
 @app.route("/")
 def index():
     dados = obter_dados_horario()
+    agora = datetime.now(TIMEZONE_BRASILIA)
+    calendario_mes = gerar_calendario_mes(agora.year, agora.month)
+
     return render_visual(
         "Horário e Calendário PEG",
         "Base de consulta para a Sam - BotConversa",
         dados,
-        dados.get("mensagem_atendimento")
+        dados.get("mensagem_atendimento"),
+        calendario_mes,
+        realtime=True
     )
 
 
 @app.route("/api/horario")
 def api_horario():
     dados = obter_dados_horario()
+    agora = datetime.now(TIMEZONE_BRASILIA)
+    calendario_mes = gerar_calendario_mes(agora.year, agora.month)
+
     return responder(
         dados,
         "Horário atual",
         "Consulta de data e hora atual da PEG",
-        dados.get("mensagem_atendimento")
+        dados.get("mensagem_atendimento"),
+        calendario_mes,
+        realtime=True
     )
 
 
@@ -1194,7 +1392,8 @@ def api_calendario_mes_atual():
         f"Calendário de {calendario_mes['mes_nome']} de {calendario_mes['ano']}",
         "Calendário operacional da PEG",
         f"{calendario_mes['total_dias']} dias no mês",
-        calendario_mes
+        calendario_mes,
+        realtime=True
     )
 
 
