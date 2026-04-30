@@ -7,6 +7,8 @@ import os
 
 app = Flask(__name__)
 
+LOGO_PEG_URL = "https://magazord-public.s3.sa-east-1.amazonaws.com/pegdobrasil/img/2025/03/banner/138072/medium/logo-vazia.png"
+
 TIMEZONE_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 DIAS_SEMANA = {
@@ -141,7 +143,7 @@ def verificar_data_fechada(data_consulta):
             "eh_data_especial": item["tipo"] == "data_especial",
             "nome_feriado": item["nome"],
             "tipo_fechamento": item["tipo"],
-            "motivo_fechamento": f"{item['nome']}"
+            "motivo_fechamento": item["nome"]
         }
 
     return {
@@ -486,11 +488,11 @@ body::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("https://github.com/Pegdobrasil/peg-imagens-site/blob/main/logo%20branca.png?raw=true");
+  background-image: url("https://magazord-public.s3.sa-east-1.amazonaws.com/pegdobrasil/img/2025/03/banner/138072/medium/logo-vazia.png");
   background-repeat: no-repeat;
   background-position: right 36px top 28px;
-  background-size: 220px auto;
-  opacity: 0.06;
+  background-size: 230px auto;
+  opacity: 0.055;
   pointer-events: none;
 }
 
@@ -510,21 +512,26 @@ body::before {
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
 .brand-mark {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 82px;
+  height: 82px;
+  border-radius: 22px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--peg-blue), var(--peg-cyan));
-  box-shadow: 0 0 28px rgba(0, 200, 255, 0.35);
-  font-weight: 900;
-  color: white;
-  letter-spacing: -1px;
-  font-size: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 200, 255, 0.24);
+  box-shadow: 0 0 28px rgba(0, 200, 255, 0.25);
+  padding: 11px;
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-title {
@@ -790,6 +797,12 @@ body::before {
     align-items: flex-start;
   }
 
+  .brand-mark {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+  }
+
   .clock-card,
   .status-card {
     padding: 20px;
@@ -933,7 +946,9 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None):
 
         <div class="topbar">
           <div class="brand">
-            <div class="brand-mark">PEG</div>
+            <div class="brand-mark">
+              <img class="brand-logo" src="{LOGO_PEG_URL}" alt="PEG do Brasil">
+            </div>
             <div>
               <h1 class="brand-title">{titulo}</h1>
               <p class="brand-subtitle">{subtitulo}</p>
