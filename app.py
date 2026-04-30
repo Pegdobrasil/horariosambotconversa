@@ -717,6 +717,42 @@ body::before {
     linear-gradient(135deg, rgba(0, 92, 255, 0.92), rgba(0, 200, 255, 0.40));
 }
 
+.calendar-header-flex {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+
+.calendar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(2, 6, 23, 0.34);
+  color: white;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.22s ease;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.calendar-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(0, 200, 255, 0.20);
+  box-shadow: 0 0 22px rgba(0, 200, 255, 0.22);
+}
+
 .panel-title {
   margin: 0;
   color: white;
@@ -959,6 +995,21 @@ body::before {
     border-radius: 18px;
   }
 
+  .calendar-header-flex {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .calendar-btn {
+    width: 44px;
+    height: 38px;
+  }
+
   .clock-card,
   .status-card {
     padding: 20px;
@@ -1020,9 +1071,16 @@ def montar_calendario_html(calendario):
     calendario_html = f"""
     <section class="panel calendar-panel">
       <div class="panel-header">
-        <div>
-          <h2 class="panel-title">Calendário de {calendario["mes_nome"]} de {calendario["ano"]}</h2>
-          <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
+        <div class="calendar-header-flex">
+          <div>
+            <h2 id="tituloCalendarioPeg" class="panel-title">Calendário de {calendario["mes_nome"]} de {calendario["ano"]}</h2>
+            <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
+          </div>
+
+          <div class="calendar-actions">
+            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(-1)" aria-label="Mês anterior">‹</button>
+            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(1)" aria-label="Próximo mês">›</button>
+          </div>
         </div>
       </div>
       <div class="calendar-grid">
@@ -1106,14 +1164,20 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
 
     calendario_html = montar_calendario_html(calendario)
 
+    calendario_ano = calendario["ano"] if calendario else datetime.now(TIMEZONE_BRASILIA).year
+    calendario_mes = calendario["mes"] if calendario else datetime.now(TIMEZONE_BRASILIA).month
+
     script_tempo_real = ""
 
     if tempo_real:
-        script_tempo_real = """
+        script_tempo_real = f"""
 <script>
-async function atualizarHorarioPeg() {
-  try {
-    const resposta = await fetch("/api/horario", { cache: "no-store" });
+let calendarioPegAno = {calendario_ano};
+let calendarioPegMes = {calendario_mes};
+
+async function atualizarHorarioPeg() {{
+  try {{
+    const resposta = await fetch("/api/horario", {{ cache: "no-store" }});
     const dados = await resposta.json();
 
     const dataEl = document.getElementById("dataAtualPeg");
@@ -1121,126 +1185,161 @@ async function atualizarHorarioPeg() {
     const statusEl = document.getElementById("statusAtualPeg");
     const jsonEl = document.getElementById("jsonAtualPeg");
 
-    if (dataEl) {
+    if (dataEl) {{
       dataEl.textContent = dados.data_extenso;
-    }
+    }}
 
-    if (horaEl) {
+    if (horaEl) {{
       horaEl.textContent = dados.hora_atual;
       horaEl.classList.remove("tick");
       void horaEl.offsetWidth;
       horaEl.classList.add("tick");
-    }
+    }}
 
-    if (statusEl) {
+    if (statusEl) {{
       statusEl.textContent = dados.mensagem_atendimento;
       statusEl.classList.remove("closed", "holiday");
 
-      if (dados.nome_feriado) {
+      if (dados.nome_feriado) {{
         statusEl.classList.add("holiday");
-      } else if (!dados.atendimento_aberto) {
+      }} else if (!dados.atendimento_aberto) {{
         statusEl.classList.add("closed");
-      }
-    }
+      }}
+    }}
 
-    if (jsonEl) {
+    if (jsonEl) {{
       jsonEl.textContent = JSON.stringify(dados, null, 2);
-    }
-  } catch (erro) {
+    }}
+  }} catch (erro) {{
     console.log("Erro ao atualizar horário PEG", erro);
-  }
-}
+  }}
+}}
 
-async function atualizarCalendarioPeg() {
-  try {
-    const resposta = await fetch("/api/calendario", { cache: "no-store" });
+function montarHtmlCalendarioPeg(dados) {{
+  const nomesDias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+  const hoje = dados.hoje.data_atual;
+
+  let html = `
+    <section class="panel calendar-panel">
+      <div class="panel-header">
+        <div class="calendar-header-flex">
+          <div>
+            <h2 id="tituloCalendarioPeg" class="panel-title">Calendário de ${{dados.mes_nome}} de ${{dados.ano}}</h2>
+            <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
+          </div>
+
+          <div class="calendar-actions">
+            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(-1)" aria-label="Mês anterior">‹</button>
+            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(1)" aria-label="Próximo mês">›</button>
+          </div>
+        </div>
+      </div>
+      <div class="calendar-grid">
+  `;
+
+  nomesDias.forEach(nome => {{
+    html += `<div class="day-name">${{nome}}</div>`;
+  }});
+
+  dados.semanas.forEach(semana => {{
+    semana.forEach(dia => {{
+      if (!dia) {{
+        html += `<div class="day empty"></div>`;
+      }} else {{
+        let classes = "day";
+
+        if (dia.loja_abre === true) {{
+          classes += " open";
+        }}
+
+        if (dia.loja_abre === false) {{
+          classes += " closed";
+        }}
+
+        if (dia.nome_feriado) {{
+          classes += " holiday";
+        }}
+
+        if (dia.data === hoje) {{
+          classes += " today";
+        }}
+
+        let info = dia.funcionamento_previsto;
+        let tagClasse = "open";
+        let tagTexto = "Aberto";
+
+        if (dia.nome_feriado) {{
+          info = dia.nome_feriado;
+          tagClasse = "holiday";
+          tagTexto = "Feriado";
+        }} else if (dia.loja_abre === false) {{
+          tagClasse = "closed";
+          tagTexto = "Fechado";
+        }}
+
+        html += `
+          <div class="${{classes}}">
+            <div class="day-number">${{dia.dia}}</div>
+            <div class="day-info">${{dia.dia_semana}}</div>
+            <div class="day-info">${{info}}</div>
+            <div class="day-tag ${{tagClasse}}">${{tagTexto}}</div>
+          </div>
+        `;
+      }}
+    }});
+  }});
+
+  html += `
+      </div>
+    </section>
+  `;
+
+  return html;
+}}
+
+async function carregarCalendarioPeg(ano, mes) {{
+  try {{
+    const resposta = await fetch(`/api/calendario/${{ano}}/${{mes}}`, {{ cache: "no-store" }});
     const dados = await resposta.json();
 
     const painel = document.getElementById("calendarioAtualPeg");
 
-    if (!painel) {
+    if (!painel) {{
       return;
-    }
+    }}
 
-    const nomesDias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-    const hoje = dados.hoje.data_atual;
+    calendarioPegAno = dados.ano;
+    calendarioPegMes = dados.mes;
 
-    let html = `
-      <section class="panel calendar-panel">
-        <div class="panel-header">
-          <div>
-            <h2 class="panel-title">Calendário de ${dados.mes_nome} de ${dados.ano}</h2>
-            <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
-          </div>
-        </div>
-        <div class="calendar-grid">
-    `;
+    painel.innerHTML = montarHtmlCalendarioPeg(dados);
 
-    nomesDias.forEach(nome => {
-      html += `<div class="day-name">${nome}</div>`;
-    });
+  }} catch (erro) {{
+    console.log("Erro ao carregar calendário PEG", erro);
+  }}
+}}
 
-    dados.semanas.forEach(semana => {
-      semana.forEach(dia => {
-        if (!dia) {
-          html += `<div class="day empty"></div>`;
-        } else {
-          let classes = "day";
+function mudarMesCalendarioPeg(direcao) {{
+  calendarioPegMes += direcao;
 
-          if (dia.loja_abre === true) {
-            classes += " open";
-          }
+  if (calendarioPegMes < 1) {{
+    calendarioPegMes = 12;
+    calendarioPegAno -= 1;
+  }}
 
-          if (dia.loja_abre === false) {
-            classes += " closed";
-          }
+  if (calendarioPegMes > 12) {{
+    calendarioPegMes = 1;
+    calendarioPegAno += 1;
+  }}
 
-          if (dia.nome_feriado) {
-            classes += " holiday";
-          }
+  carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
+}}
 
-          if (dia.data === hoje) {
-            classes += " today";
-          }
-
-          let info = dia.funcionamento_previsto;
-          let tagClasse = "open";
-          let tagTexto = "Aberto";
-
-          if (dia.nome_feriado) {
-            info = dia.nome_feriado;
-            tagClasse = "holiday";
-            tagTexto = "Feriado";
-          } else if (dia.loja_abre === false) {
-            tagClasse = "closed";
-            tagTexto = "Fechado";
-          }
-
-          html += `
-            <div class="${classes}">
-              <div class="day-number">${dia.dia}</div>
-              <div class="day-info">${dia.dia_semana}</div>
-              <div class="day-info">${info}</div>
-              <div class="day-tag ${tagClasse}">${tagTexto}</div>
-            </div>
-          `;
-        }
-      });
-    });
-
-    html += `
-        </div>
-      </section>
-    `;
-
-    painel.innerHTML = html;
-  } catch (erro) {
-    console.log("Erro ao atualizar calendário PEG", erro);
-  }
-}
+async function atualizarCalendarioPeg() {{
+  await carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
+}}
 
 atualizarHorarioPeg();
-atualizarCalendarioPeg();
+carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
 
 setInterval(atualizarHorarioPeg, 1000);
 setInterval(atualizarCalendarioPeg, 60000);
