@@ -572,6 +572,14 @@ body::before {
   border: 1px solid rgba(0, 200, 255, 0.24);
   box-shadow: 0 0 28px rgba(0, 200, 255, 0.25);
   padding: 11px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.22s ease;
+}
+
+.brand-mark:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 34px rgba(0, 200, 255, 0.34);
 }
 
 .brand-logo {
@@ -2043,9 +2051,9 @@ setInterval(atualizarCalendarioPeg, 60000);
 
         <div class="topbar">
           <div class="brand">
-            <div class="brand-mark">
+            <a class="brand-mark" href="/" title="Voltar para a página inicial" aria-label="Voltar para a página inicial">
               <img class="brand-logo" src="{LOGO_PEG_URL}" alt="PEG do Brasil">
-            </div>
+            </a>
             <div>
               <h1 class="brand-title">{titulo}</h1>
               <p class="brand-subtitle">{subtitulo}</p>
