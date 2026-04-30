@@ -143,7 +143,7 @@ def verificar_data_fechada(data_consulta):
             "eh_data_especial": item["tipo"] == "data_especial",
             "nome_feriado": item["nome"],
             "tipo_fechamento": item["tipo"],
-            "motivo_fechamento": item["nome"]
+            "motivo_fechamento": f"{item['nome']}"
         }
 
     return {
@@ -488,11 +488,11 @@ body::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("https://magazord-public.s3.sa-east-1.amazonaws.com/pegdobrasil/img/2025/03/banner/138072/medium/logo-vazia.png");
+  background-image: url("https://github.com/Pegdobrasil/peg-imagens-site/blob/main/logo%20branca.png?raw=true");
   background-repeat: no-repeat;
   background-position: right 36px top 28px;
-  background-size: 230px auto;
-  opacity: 0.055;
+  background-size: 220px auto;
+  opacity: 0.06;
   pointer-events: none;
 }
 
@@ -512,7 +512,7 @@ body::before {
 .brand {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .brand-mark {
