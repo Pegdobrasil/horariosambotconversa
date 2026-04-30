@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, Response
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from zoneinfo import ZoneInfo
 import calendar
 import os
@@ -35,7 +35,73 @@ MESES = {
 }
 
 
+def calcular_pascoa(ano):
+    a = ano % 19
+    b = ano // 100
+    c = ano % 100
+    d = b // 4
+    e = b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i = c // 4
+    k = c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    mes = (h + l - 7 * m + 114) // 31
+    dia = ((h + l - 7 * m + 114) % 31) + 1
+
+    return date(ano, mes, dia)
+
+
+def obter_feriados_nacionais(ano):
+    pascoa = calcular_pascoa(ano)
+    sexta_feira_santa = pascoa - timedelta(days=2)
+
+    feriados = {
+        date(ano, 1, 1): "Confraternização Universal",
+        sexta_feira_santa: "Sexta-feira Santa",
+        date(ano, 4, 21): "Tiradentes",
+        date(ano, 5, 1): "Dia do Trabalho",
+        date(ano, 9, 7): "Independência do Brasil",
+        date(ano, 10, 12): "Nossa Senhora Aparecida",
+        date(ano, 11, 2): "Finados",
+        date(ano, 11, 15): "Proclamação da República",
+        date(ano, 11, 20): "Dia Nacional de Zumbi e da Consciência Negra",
+        date(ano, 12, 25): "Natal"
+    }
+
+    return feriados
+
+
+def verificar_feriado_nacional(data_consulta):
+    feriados = obter_feriados_nacionais(data_consulta.year)
+
+    if data_consulta in feriados:
+        return {
+            "eh_feriado_nacional": True,
+            "nome_feriado": feriados[data_consulta]
+        }
+
+    return {
+        "eh_feriado_nacional": False,
+        "nome_feriado": None
+    }
+
+
 def verificar_atendimento(dt):
+    data_atual = dt.date()
+    feriado = verificar_feriado_nacional(data_atual)
+
+    if feriado["eh_feriado_nacional"]:
+        return {
+            "atendimento_aberto": False,
+            "status_atendimento": "fechado",
+            "mensagem_atendimento": f"Estamos fechados devido ao feriado nacional: {feriado['nome_feriado']}.",
+            "eh_feriado_nacional": True,
+            "nome_feriado": feriado["nome_feriado"]
+        }
+
     dia_semana_numero = dt.weekday()
     minutos_atuais = dt.hour * 60 + dt.minute
 
@@ -57,13 +123,17 @@ def verificar_atendimento(dt):
         return {
             "atendimento_aberto": True,
             "status_atendimento": "aberto",
-            "mensagem_atendimento": "Estamos em horário de atendimento."
+            "mensagem_atendimento": "Estamos em horário de atendimento.",
+            "eh_feriado_nacional": False,
+            "nome_feriado": None
         }
 
     return {
         "atendimento_aberto": False,
         "status_atendimento": "fechado",
-        "mensagem_atendimento": "Estamos fora do horário de atendimento."
+        "mensagem_atendimento": "Estamos fora do horário de atendimento.",
+        "eh_feriado_nacional": False,
+        "nome_feriado": None
     }
 
 
@@ -84,6 +154,7 @@ def obter_dados_horario():
         "empresa": "PEG do Brasil",
         "timezone": "America/Sao_Paulo",
         "data_atual": data_atual,
+        "data_br": agora.strftime("%d/%m/%Y"),
         "data_extenso": data_extenso,
         "dia_semana": dia_semana,
         "dia_semana_numero": dia_semana_numero,
@@ -98,10 +169,13 @@ def obter_dados_horario():
         "atendimento_aberto": atendimento["atendimento_aberto"],
         "status_atendimento": atendimento["status_atendimento"],
         "mensagem_atendimento": atendimento["mensagem_atendimento"],
+        "eh_feriado_nacional": atendimento["eh_feriado_nacional"],
+        "nome_feriado": atendimento["nome_feriado"],
         "horario_funcionamento": {
             "segunda_a_sexta": "09:00 às 18:00",
             "sabado": "09:00 às 13:00",
-            "domingo": "Fechado"
+            "domingo": "Fechado",
+            "feriados_nacionais": "Fechado"
         }
     }
 
@@ -122,15 +196,26 @@ def gerar_dados_data(ano, mes, dia):
         eh_sabado = dia_semana_numero == 5
         eh_dia_util = dia_semana_numero in [0, 1, 2, 3, 4]
 
-        if eh_dia_util:
+        feriado = verificar_feriado_nacional(data_consulta)
+        eh_feriado_nacional = feriado["eh_feriado_nacional"]
+        nome_feriado = feriado["nome_feriado"]
+
+        if eh_feriado_nacional:
+            funcionamento = "Fechado"
+            loja_abre = False
+            motivo_fechamento = f"Feriado nacional: {nome_feriado}"
+        elif eh_dia_util:
             funcionamento = "09:00 às 18:00"
             loja_abre = True
+            motivo_fechamento = None
         elif eh_sabado:
             funcionamento = "09:00 às 13:00"
             loja_abre = True
+            motivo_fechamento = None
         else:
             funcionamento = "Fechado"
             loja_abre = False
+            motivo_fechamento = "Domingo"
 
         return {
             "data": data_consulta.strftime("%Y-%m-%d"),
@@ -146,8 +231,11 @@ def gerar_dados_data(ano, mes, dia):
             "eh_sabado": eh_sabado,
             "eh_domingo": eh_domingo,
             "eh_final_de_semana": eh_final_de_semana,
+            "eh_feriado_nacional": eh_feriado_nacional,
+            "nome_feriado": nome_feriado,
             "loja_abre": loja_abre,
-            "funcionamento_previsto": funcionamento
+            "funcionamento_previsto": funcionamento,
+            "motivo_fechamento": motivo_fechamento
         }
 
     except ValueError:
@@ -204,9 +292,20 @@ def gerar_calendario_ano(ano):
         calendario_mes = gerar_calendario_mes(ano, mes)
         meses.append(calendario_mes)
 
+    feriados = []
+
+    for data_feriado, nome_feriado in sorted(obter_feriados_nacionais(ano).items()):
+        feriados.append({
+            "data": data_feriado.strftime("%Y-%m-%d"),
+            "data_br": data_feriado.strftime("%d/%m/%Y"),
+            "nome_feriado": nome_feriado,
+            "dia_semana": DIAS_SEMANA[data_feriado.weekday()]
+        })
+
     return {
         "ano": ano,
         "total_meses": 12,
+        "feriados_nacionais": feriados,
         "meses": meses
     }
 
@@ -239,6 +338,7 @@ def index():
       --peg-muted: #94a3b8;
       --peg-green: #22c55e;
       --peg-red: #ef4444;
+      --peg-yellow: #facc15;
     }}
 
     body {{
@@ -502,6 +602,12 @@ def index():
       color: #fee2e2;
     }}
 
+    .status-badge.holiday {{
+      border-color: rgba(250, 204, 21, 0.42);
+      background: rgba(250, 204, 21, 0.12);
+      color: #fef9c3;
+    }}
+
     .status-dot {{
       width: 10px;
       height: 10px;
@@ -513,6 +619,19 @@ def index():
     .status-dot.closed {{
       background: var(--peg-red);
       box-shadow: 0 0 18px rgba(239, 68, 68, 0.9);
+    }}
+
+    .status-dot.holiday {{
+      background: var(--peg-yellow);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.9);
+    }}
+
+    .holiday-line {{
+      margin-top: 12px;
+      color: #fef9c3;
+      font-size: 13px;
+      font-weight: 800;
+      display: none;
     }}
 
     .hours-list {{
@@ -656,7 +775,7 @@ def index():
     }}
 
     .day {{
-      min-height: 82px;
+      min-height: 92px;
       padding: 9px;
       border-right: 1px solid rgba(148, 163, 184, 0.10);
       border-bottom: 1px solid rgba(148, 163, 184, 0.10);
@@ -681,6 +800,14 @@ def index():
       box-shadow: inset 0 0 24px rgba(0, 200, 255, 0.14);
     }}
 
+    .day.holiday {{
+      background:
+        radial-gradient(circle at top right, rgba(250, 204, 21, 0.20), transparent 55%),
+        rgba(127, 29, 29, 0.30);
+      outline: 1px solid rgba(250, 204, 21, 0.50);
+      outline-offset: -1px;
+    }}
+
     .day-number {{
       font-size: 17px;
       color: white;
@@ -696,6 +823,23 @@ def index():
 
     .day.today .day-info {{
       color: #dff7ff;
+    }}
+
+    .day.holiday .day-info {{
+      color: #fef9c3;
+      font-weight: 800;
+    }}
+
+    .holiday-tag {{
+      display: inline-block;
+      margin-top: 6px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(250, 204, 21, 0.14);
+      border: 1px solid rgba(250, 204, 21, 0.30);
+      color: #fef9c3;
+      font-size: 10px;
+      font-weight: 900;
     }}
 
     .json-box {{
@@ -796,11 +940,12 @@ def index():
       }}
 
       .day {{
-        min-height: 58px;
+        min-height: 64px;
         padding: 5px;
       }}
 
-      .day-info {{
+      .day-info,
+      .holiday-tag {{
         display: none;
       }}
 
@@ -862,6 +1007,8 @@ def index():
                 <span id="statusDot" class="status-dot"></span>
                 <span id="statusAtendimento">{dados["mensagem_atendimento"]}</span>
               </div>
+
+              <div id="holidayLine" class="holiday-line"></div>
             </div>
 
             <div class="mini-card">
@@ -880,6 +1027,11 @@ def index():
 
                 <div class="hours-item">
                   <span>Domingo</span>
+                  <strong>Fechado</strong>
+                </div>
+
+                <div class="hours-item">
+                  <span>Feriados nacionais</span>
                   <strong>Fechado</strong>
                 </div>
               </div>
@@ -924,6 +1076,11 @@ def index():
             <span>/api/data/{dados["data_atual"]}</span>
             <small>data específica</small>
           </a>
+
+          <a class="endpoint" href="/api/feriados/{dados["ano_atual"]}" target="_blank">
+            <span>/api/feriados/{dados["ano_atual"]}</span>
+            <small>feriados nacionais</small>
+          </a>
         </div>
       </div>
 
@@ -940,7 +1097,7 @@ def index():
     </section>
 
     <div class="footer">
-      PEG do Brasil - Sistema de data, hora e calendário para atendimento automatizado
+      PEG do Brasil - Sistema de data, hora, calendário e feriados nacionais para atendimento automatizado
     </div>
 
   </div>
@@ -964,13 +1121,24 @@ def index():
 
         const statusBadge = document.getElementById("statusBadge");
         const statusDot = document.getElementById("statusDot");
+        const holidayLine = document.getElementById("holidayLine");
 
-        if (dados.atendimento_aberto) {{
-          statusBadge.classList.remove("closed");
-          statusDot.classList.remove("closed");
+        statusBadge.classList.remove("closed", "holiday");
+        statusDot.classList.remove("closed", "holiday");
+
+        if (dados.eh_feriado_nacional) {{
+          statusBadge.classList.add("holiday");
+          statusDot.classList.add("holiday");
+          holidayLine.style.display = "block";
+          holidayLine.textContent = "Feriado nacional: " + dados.nome_feriado;
+        }} else if (dados.atendimento_aberto) {{
+          holidayLine.style.display = "none";
+          holidayLine.textContent = "";
         }} else {{
           statusBadge.classList.add("closed");
           statusDot.classList.add("closed");
+          holidayLine.style.display = "none";
+          holidayLine.textContent = "";
         }}
 
         document.getElementById("jsonIntegracao").textContent =
@@ -980,6 +1148,8 @@ def index():
         document.body.setAttribute("data-hora-atual", dados.hora_atual);
         document.body.setAttribute("data-dia-semana", dados.dia_semana);
         document.body.setAttribute("data-atendimento-aberto", dados.atendimento_aberto);
+        document.body.setAttribute("data-eh-feriado-nacional", dados.eh_feriado_nacional);
+        document.body.setAttribute("data-nome-feriado", dados.nome_feriado || "");
 
       }} catch (erro) {{
         document.getElementById("jsonIntegracao").textContent =
@@ -1021,12 +1191,16 @@ def index():
               html += `<div class="day empty"></div>`;
             }} else {{
               const hoje = dia.data === calendario.hoje.data_atual ? "today" : "";
+              const feriado = dia.eh_feriado_nacional ? "holiday" : "";
+              const textoFuncionamento = dia.eh_feriado_nacional ? "Fechado" : dia.funcionamento_previsto;
+              const tagFeriado = dia.eh_feriado_nacional ? `<div class="holiday-tag">Feriado</div>` : "";
 
               html += `
-                <div class="day ${{hoje}}">
+                <div class="day ${{hoje}} ${{feriado}}">
                   <div class="day-number">${{dia.dia}}</div>
                   <div class="day-info">${{dia.dia_semana}}</div>
-                  <div class="day-info">${{dia.funcionamento_previsto}}</div>
+                  <div class="day-info">${{textoFuncionamento}}</div>
+                  ${{tagFeriado}}
                 </div>
               `;
             }}
@@ -1159,11 +1333,40 @@ def api_data_especifica(data_texto):
         }), 400
 
 
+@app.route("/api/feriados/<int:ano>")
+def api_feriados_ano(ano):
+    if ano < 1 or ano > 9999:
+        return jsonify({
+            "erro": True,
+            "mensagem": "Ano inválido."
+        }), 400
+
+    feriados = []
+
+    for data_feriado, nome_feriado in sorted(obter_feriados_nacionais(ano).items()):
+        feriados.append({
+            "data": data_feriado.strftime("%Y-%m-%d"),
+            "data_br": data_feriado.strftime("%d/%m/%Y"),
+            "nome_feriado": nome_feriado,
+            "dia_semana": DIAS_SEMANA[data_feriado.weekday()],
+            "loja_abre": False,
+            "funcionamento_previsto": "Fechado"
+        })
+
+    return jsonify({
+        "ano": ano,
+        "tipo_consulta": "feriados_nacionais",
+        "total_feriados": len(feriados),
+        "feriados_nacionais": feriados,
+        "hoje": obter_dados_horario()
+    })
+
+
 @app.route("/health")
 def health():
     return jsonify({
         "status": "online",
-        "servico": "horario-calendario-peg"
+        "servico": "horario-calendario-feriados-peg"
     })
 
 
