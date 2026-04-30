@@ -1507,6 +1507,7 @@ body::before {
 
 def endpoint_cards():
     endpoints = [
+        ("/api/inicio", "Início"),
         ("/api/horario", "Horário atual"),
         ("/api/amanha", "Amanhã"),
         ("/api/depois-de-amanha", "Depois de amanhã"),
@@ -2188,6 +2189,22 @@ def responder(dados, titulo, subtitulo, status_texto=None, calendario=None, temp
 
 @app.route("/")
 def index():
+    dados = obter_dados_horario()
+    agora = datetime.now(TIMEZONE_BRASILIA)
+    calendario_mes = gerar_calendario_mes(agora.year, agora.month)
+
+    return render_visual(
+        "Horário e Calendário PEG",
+        "Base de consulta para a Sam - BotConversa",
+        dados,
+        dados.get("mensagem_atendimento"),
+        calendario_mes,
+        tempo_real=True
+    )
+
+
+@app.route("/api/inicio")
+def api_inicio():
     dados = obter_dados_horario()
     agora = datetime.now(TIMEZONE_BRASILIA)
     calendario_mes = gerar_calendario_mes(agora.year, agora.month)
