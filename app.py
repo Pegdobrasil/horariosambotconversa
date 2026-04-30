@@ -102,24 +102,12 @@ def obter_datas_fechadas(ano):
             "nome": "Independência do Brasil",
             "tipo": "feriado_nacional"
         },
-        date(ano, 9, 8): {
-            "nome": "Nossa Senhora da Luz dos Pinhais, padroeira de Curitiba",
-            "tipo": "feriado_municipal"
-        },
-        date(ano, 10, 12): {
-            "nome": "Nossa Senhora Aparecida",
-            "tipo": "feriado_nacional"
-        },
         date(ano, 11, 2): {
             "nome": "Finados",
             "tipo": "feriado_nacional"
         },
         date(ano, 11, 15): {
             "nome": "Proclamação da República",
-            "tipo": "feriado_nacional"
-        },
-        date(ano, 11, 20): {
-            "nome": "Dia Nacional de Zumbi e da Consciência Negra",
             "tipo": "feriado_nacional"
         },
         date(ano, 12, 25): {
@@ -129,6 +117,23 @@ def obter_datas_fechadas(ano):
     }
 
     return datas
+
+
+def obter_feriados_com_loja_aberta(ano):
+    return {
+        date(ano, 9, 8): {
+            "nome": "Nossa Senhora da Luz dos Pinhais, padroeira de Curitiba",
+            "tipo": "feriado_municipal_loja_aberta"
+        },
+        date(ano, 10, 12): {
+            "nome": "Nossa Senhora Aparecida",
+            "tipo": "feriado_nacional_loja_aberta"
+        },
+        date(ano, 11, 20): {
+            "nome": "Dia Nacional de Zumbi e da Consciência Negra",
+            "tipo": "feriado_nacional_loja_aberta"
+        }
+    }
 
 
 def verificar_data_fechada(data_consulta):
@@ -156,6 +161,27 @@ def verificar_data_fechada(data_consulta):
     }
 
 
+def verificar_feriado_com_loja_aberta(data_consulta):
+    feriados_abertos = obter_feriados_com_loja_aberta(data_consulta.year)
+
+    if data_consulta in feriados_abertos:
+        item = feriados_abertos[data_consulta]
+
+        return {
+            "eh_feriado_com_loja_aberta": True,
+            "nome_feriado_aberto": item["nome"],
+            "tipo_feriado_aberto": item["tipo"],
+            "observacao_feriado_aberto": "A loja não fecha nesta data."
+        }
+
+    return {
+        "eh_feriado_com_loja_aberta": False,
+        "nome_feriado_aberto": None,
+        "tipo_feriado_aberto": None,
+        "observacao_feriado_aberto": None
+    }
+
+
 def gerar_dados_data(ano, mes, dia):
     try:
         data_consulta = date(ano, mes, dia)
@@ -171,6 +197,7 @@ def gerar_dados_data(ano, mes, dia):
         eh_final_de_semana = eh_sabado or eh_domingo
 
         fechamento = verificar_data_fechada(data_consulta)
+        feriado_aberto = verificar_feriado_com_loja_aberta(data_consulta)
 
         if fechamento["eh_feriado_nacional"] or fechamento["eh_feriado_municipal"] or fechamento["eh_data_especial"]:
             loja_abre = False
@@ -194,7 +221,14 @@ def gerar_dados_data(ano, mes, dia):
             motivo_fechamento = "Data sem expediente cadastrado"
 
         if loja_abre:
-            mensagem_resposta = f"Nessa data teremos atendimento das {funcionamento_previsto}."
+            if feriado_aberto["eh_feriado_com_loja_aberta"]:
+                mensagem_resposta = (
+                    f"Nessa data teremos atendimento das {funcionamento_previsto}. "
+                    f"Feriado cadastrado com loja aberta: {feriado_aberto['nome_feriado_aberto']}. "
+                    "A loja não fecha nesta data."
+                )
+            else:
+                mensagem_resposta = f"Nessa data teremos atendimento das {funcionamento_previsto}."
         else:
             if fechamento["nome_feriado"]:
                 mensagem_resposta = f"Nessa data não teremos atendimento devido ao feriado: {fechamento['nome_feriado']}."
@@ -220,6 +254,10 @@ def gerar_dados_data(ano, mes, dia):
             "eh_data_especial": fechamento["eh_data_especial"],
             "nome_feriado": fechamento["nome_feriado"],
             "tipo_fechamento": fechamento["tipo_fechamento"],
+            "eh_feriado_com_loja_aberta": feriado_aberto["eh_feriado_com_loja_aberta"],
+            "nome_feriado_aberto": feriado_aberto["nome_feriado_aberto"],
+            "tipo_feriado_aberto": feriado_aberto["tipo_feriado_aberto"],
+            "observacao_feriado_aberto": feriado_aberto["observacao_feriado_aberto"],
             "loja_abre": loja_abre,
             "funcionamento_previsto": funcionamento_previsto,
             "motivo_fechamento": motivo_fechamento,
@@ -249,7 +287,14 @@ def verificar_atendimento_agora():
 
     if atendimento_aberto:
         status_atendimento = "aberto"
-        mensagem_atendimento = "Estamos em horário de atendimento."
+
+        if dados_data["eh_feriado_com_loja_aberta"]:
+            mensagem_atendimento = (
+                f"Estamos em horário de atendimento. "
+                f"Hoje é {dados_data['nome_feriado_aberto']}, mas a loja não fecha nesta data."
+            )
+        else:
+            mensagem_atendimento = "Estamos em horário de atendimento."
     else:
         status_atendimento = "fechado"
 
@@ -297,14 +342,16 @@ def obter_dados_horario():
         "eh_feriado_municipal": dados_data["eh_feriado_municipal"],
         "eh_data_especial": dados_data["eh_data_especial"],
         "nome_feriado": dados_data["nome_feriado"],
+        "eh_feriado_com_loja_aberta": dados_data["eh_feriado_com_loja_aberta"],
+        "nome_feriado_aberto": dados_data["nome_feriado_aberto"],
+        "observacao_feriado_aberto": dados_data["observacao_feriado_aberto"],
         "motivo_fechamento": dados_data["motivo_fechamento"],
         "horario_funcionamento": {
             "segunda_a_sexta": "09:00 às 18:00",
             "sabado": "09:00 às 13:00",
             "domingo": "Fechado",
-            "feriados_nacionais": "Fechado",
-            "feriados_municipais_cadastrados": "Fechado",
-            "datas_especiais_cadastradas": "Fechado"
+            "feriados_fechados": "Fechado",
+            "feriados_com_loja_aberta": "A loja não fecha nessas datas cadastradas"
         }
     }
 
@@ -378,12 +425,32 @@ def listar_feriados_ano(ano):
             "tipo": item["tipo"],
             "loja_abre": False,
             "funcionamento_previsto": "Fechado",
-            "motivo_fechamento": item["nome"]
+            "motivo_fechamento": item["nome"],
+            "eh_feriado_com_loja_aberta": False
         })
+
+    for data_aberta, item in sorted(obter_feriados_com_loja_aberta(ano).items()):
+        dados = gerar_dados_data(data_aberta.year, data_aberta.month, data_aberta.day)
+
+        feriados.append({
+            "data": dados["data"],
+            "data_br": dados["data_br"],
+            "data_extenso": dados["data_extenso"],
+            "dia_semana": dados["dia_semana"],
+            "nome_feriado": item["nome"],
+            "tipo": item["tipo"],
+            "loja_abre": dados["loja_abre"],
+            "funcionamento_previsto": dados["funcionamento_previsto"],
+            "motivo_fechamento": None,
+            "eh_feriado_com_loja_aberta": True,
+            "observacao": "A loja não fecha nesta data."
+        })
+
+    feriados = sorted(feriados, key=lambda item: item["data"])
 
     return {
         "ano": ano,
-        "tipo_consulta": "feriados_e_datas_fechadas",
+        "tipo_consulta": "feriados_e_datas_cadastradas",
         "total_feriados": len(feriados),
         "feriados": feriados
     }
@@ -403,12 +470,24 @@ def proxima_data_por_dia_semana(dia_alvo):
 def proximo_feriado():
     hoje = datetime.now(TIMEZONE_BRASILIA).date()
 
+    eventos = []
+
     for ano in range(hoje.year, hoje.year + 3):
         for data_fechada, item in sorted(obter_datas_fechadas(ano).items()):
-            if data_fechada >= hoje:
-                dados = gerar_dados_data(data_fechada.year, data_fechada.month, data_fechada.day)
-                dados["tipo_consulta"] = "proximo_feriado"
-                return dados
+            eventos.append((data_fechada, item["nome"], "fechado"))
+
+        for data_aberta, item in sorted(obter_feriados_com_loja_aberta(ano).items()):
+            eventos.append((data_aberta, item["nome"], "loja_aberta"))
+
+    eventos = sorted(eventos, key=lambda item: item[0])
+
+    for data_evento, nome, tipo in eventos:
+        if data_evento >= hoje:
+            dados = gerar_dados_data(data_evento.year, data_evento.month, data_evento.day)
+            dados["tipo_consulta"] = "proximo_feriado"
+            dados["tipo_evento"] = tipo
+            dados["nome_evento"] = nome
+            return dados
 
     return None
 
@@ -434,6 +513,7 @@ CSS_PEG = """
   --peg-green: #22c55e;
   --peg-red: #ef4444;
   --peg-yellow: #facc15;
+  --peg-purple: #a855f7;
 }
 
 body {
@@ -662,6 +742,12 @@ body::before {
   color: #fef9c3;
 }
 
+.status-badge.holiday-open {
+  border-color: rgba(168, 85, 247, 0.48);
+  background: rgba(168, 85, 247, 0.13);
+  color: #ede9fe;
+}
+
 .hours-list {
   display: grid;
   gap: 10px;
@@ -817,10 +903,88 @@ body::before {
   background: rgba(2, 6, 23, 0.86);
 }
 
+.calendar-content {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 0;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   background: rgba(2, 6, 23, 0.50);
+}
+
+.calendar-legend {
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 200, 255, 0.10), transparent 48%),
+    rgba(2, 6, 23, 0.62);
+  border-left: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.legend-title {
+  margin: 0 0 12px;
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 11px;
+  color: #dbeafe;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.legend-dot {
+  width: 13px;
+  height: 13px;
+  min-width: 13px;
+  border-radius: 5px;
+  margin-top: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.20);
+}
+
+.legend-dot.open {
+  background: rgba(0, 200, 255, 0.36);
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.18);
+}
+
+.legend-dot.closed {
+  background: rgba(239, 68, 68, 0.56);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.14);
+}
+
+.legend-dot.holiday {
+  background: rgba(250, 204, 21, 0.58);
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.16);
+}
+
+.legend-dot.today {
+  background: rgba(34, 197, 94, 0.62);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.22);
+}
+
+.legend-dot.holiday-open {
+  background: rgba(168, 85, 247, 0.62);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.22);
+}
+
+.legend-note {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(168, 85, 247, 0.10);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  color: #ede9fe;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .day-name {
@@ -874,6 +1038,15 @@ body::before {
   outline-offset: -1px;
 }
 
+.day.holiday-open {
+  background:
+    radial-gradient(circle at top right, rgba(168, 85, 247, 0.28), transparent 55%),
+    rgba(88, 28, 135, 0.46);
+  outline: 1px solid rgba(168, 85, 247, 0.62);
+  outline-offset: -1px;
+  box-shadow: inset 0 0 22px rgba(168, 85, 247, 0.10);
+}
+
 .day.today.open {
   background:
     radial-gradient(circle at top right, rgba(34, 197, 94, 0.32), transparent 55%),
@@ -907,6 +1080,17 @@ body::before {
     0 0 22px rgba(250, 204, 21, 0.16);
 }
 
+.day.today.holiday-open {
+  background:
+    radial-gradient(circle at top right, rgba(168, 85, 247, 0.42), transparent 55%),
+    rgba(88, 28, 135, 0.66);
+  outline: 2px solid rgba(168, 85, 247, 0.95);
+  outline-offset: -2px;
+  box-shadow:
+    inset 0 0 24px rgba(168, 85, 247, 0.18),
+    0 0 22px rgba(168, 85, 247, 0.18);
+}
+
 .day-number {
   font-size: 17px;
   color: white;
@@ -930,6 +1114,10 @@ body::before {
 
 .day.holiday .day-info {
   color: #fef3c7;
+}
+
+.day.holiday-open .day-info {
+  color: #ede9fe;
 }
 
 .day-tag {
@@ -960,11 +1148,28 @@ body::before {
   border-color: rgba(250, 204, 21, 0.34);
 }
 
+.day-tag.holiday-open {
+  color: #ede9fe;
+  background: rgba(168, 85, 247, 0.16);
+  border-color: rgba(168, 85, 247, 0.38);
+}
+
 .footer {
   text-align: center;
   color: var(--peg-muted);
   margin-top: 22px;
   font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+  .calendar-content {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-legend {
+    border-left: none;
+    border-top: 1px solid rgba(148, 163, 184, 0.14);
+  }
 }
 
 @media (max-width: 980px) {
@@ -1037,6 +1242,10 @@ body::before {
   .day-number {
     font-size: 14px;
   }
+
+  .calendar-legend {
+    display: none;
+  }
 }
 </style>
 """
@@ -1062,6 +1271,43 @@ def endpoint_cards():
     return html
 
 
+def montar_legenda_calendario_html():
+    return """
+    <aside class="calendar-legend">
+      <h3 class="legend-title">Legenda</h3>
+
+      <div class="legend-item">
+        <span class="legend-dot open"></span>
+        <span>Loja aberta conforme horário de atendimento</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot today"></span>
+        <span>Data de hoje com loja aberta</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot closed"></span>
+        <span>Loja fechada por domingo ou fora do expediente cadastrado</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot holiday"></span>
+        <span>Loja fechada por feriado cadastrado</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot holiday-open"></span>
+        <span>Feriado em que a loja não fecha</span>
+      </div>
+
+      <div class="legend-note">
+        A loja não fecha em: Nossa Senhora da Luz dos Pinhais, Nossa Senhora Aparecida e Dia Nacional de Zumbi e da Consciência Negra, seguindo o horário do dia da semana correspondente.
+      </div>
+    </aside>
+    """
+
+
 def montar_calendario_html(calendario):
     if not calendario:
         return ""
@@ -1074,7 +1320,7 @@ def montar_calendario_html(calendario):
         <div class="calendar-header-flex">
           <div>
             <h2 id="tituloCalendarioPeg" class="panel-title">Calendário de {calendario["mes_nome"]} de {calendario["ano"]}</h2>
-            <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
+            <p class="panel-subtitle">Dias de atendimento, feriados fechados e feriados com loja aberta</p>
           </div>
 
           <div class="calendar-actions">
@@ -1083,7 +1329,9 @@ def montar_calendario_html(calendario):
           </div>
         </div>
       </div>
-      <div class="calendar-grid">
+
+      <div class="calendar-content">
+        <div class="calendar-grid">
     """
 
     for nome in nomes_dias:
@@ -1107,6 +1355,9 @@ def montar_calendario_html(calendario):
                 if dia["nome_feriado"]:
                     classes.append("holiday")
 
+                if dia["eh_feriado_com_loja_aberta"]:
+                    classes.append("holiday-open")
+
                 if dia["data"] == hoje:
                     classes.append("today")
 
@@ -1116,7 +1367,11 @@ def montar_calendario_html(calendario):
                 tag_classe = "open"
                 tag_texto = "Aberto"
 
-                if dia["nome_feriado"]:
+                if dia["eh_feriado_com_loja_aberta"]:
+                    info = dia["nome_feriado_aberto"]
+                    tag_classe = "holiday-open"
+                    tag_texto = "Aberto"
+                elif dia["nome_feriado"]:
                     info = dia["nome_feriado"]
                     tag_classe = "holiday"
                     tag_texto = "Feriado"
@@ -1133,7 +1388,9 @@ def montar_calendario_html(calendario):
                 </div>
                 """
 
-    calendario_html += """
+    calendario_html += f"""
+        </div>
+        {montar_legenda_calendario_html()}
       </div>
     </section>
     """
@@ -1150,10 +1407,14 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
     loja_abre = dados.get("loja_abre")
     atendimento_aberto = dados.get("atendimento_aberto")
     nome_feriado = dados.get("nome_feriado")
+    eh_feriado_com_loja_aberta = dados.get("eh_feriado_com_loja_aberta")
 
     badge_class = ""
 
-    if nome_feriado:
+    if eh_feriado_com_loja_aberta:
+        badge_class = "holiday-open"
+        status_final = status_texto or "Feriado com loja aberta"
+    elif nome_feriado:
         badge_class = "holiday"
         status_final = f"Fechado: {nome_feriado}"
     elif loja_abre is False or atendimento_aberto is False:
@@ -1198,9 +1459,11 @@ async function atualizarHorarioPeg() {{
 
     if (statusEl) {{
       statusEl.textContent = dados.mensagem_atendimento;
-      statusEl.classList.remove("closed", "holiday");
+      statusEl.classList.remove("closed", "holiday", "holiday-open");
 
-      if (dados.nome_feriado) {{
+      if (dados.eh_feriado_com_loja_aberta) {{
+        statusEl.classList.add("holiday-open");
+      }} else if (dados.nome_feriado) {{
         statusEl.classList.add("holiday");
       }} else if (!dados.atendimento_aberto) {{
         statusEl.classList.add("closed");
@@ -1215,6 +1478,43 @@ async function atualizarHorarioPeg() {{
   }}
 }}
 
+function montarLegendaCalendarioPeg() {{
+  return `
+    <aside class="calendar-legend">
+      <h3 class="legend-title">Legenda</h3>
+
+      <div class="legend-item">
+        <span class="legend-dot open"></span>
+        <span>Loja aberta conforme horário de atendimento</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot today"></span>
+        <span>Data de hoje com loja aberta</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot closed"></span>
+        <span>Loja fechada por domingo ou fora do expediente cadastrado</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot holiday"></span>
+        <span>Loja fechada por feriado cadastrado</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot holiday-open"></span>
+        <span>Feriado em que a loja não fecha</span>
+      </div>
+
+      <div class="legend-note">
+        A loja não fecha em: Nossa Senhora da Luz dos Pinhais, Nossa Senhora Aparecida e Dia Nacional de Zumbi e da Consciência Negra, seguindo o horário do dia da semana correspondente.
+      </div>
+    </aside>
+  `;
+}}
+
 function montarHtmlCalendarioPeg(dados) {{
   const nomesDias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
   const hoje = dados.hoje.data_atual;
@@ -1225,7 +1525,7 @@ function montarHtmlCalendarioPeg(dados) {{
         <div class="calendar-header-flex">
           <div>
             <h2 id="tituloCalendarioPeg" class="panel-title">Calendário de ${{dados.mes_nome}} de ${{dados.ano}}</h2>
-            <p class="panel-subtitle">Dias de atendimento, domingos e feriados fechados</p>
+            <p class="panel-subtitle">Dias de atendimento, feriados fechados e feriados com loja aberta</p>
           </div>
 
           <div class="calendar-actions">
@@ -1234,7 +1534,9 @@ function montarHtmlCalendarioPeg(dados) {{
           </div>
         </div>
       </div>
-      <div class="calendar-grid">
+
+      <div class="calendar-content">
+        <div class="calendar-grid">
   `;
 
   nomesDias.forEach(nome => {{
@@ -1260,6 +1562,10 @@ function montarHtmlCalendarioPeg(dados) {{
           classes += " holiday";
         }}
 
+        if (dia.eh_feriado_com_loja_aberta) {{
+          classes += " holiday-open";
+        }}
+
         if (dia.data === hoje) {{
           classes += " today";
         }}
@@ -1268,7 +1574,11 @@ function montarHtmlCalendarioPeg(dados) {{
         let tagClasse = "open";
         let tagTexto = "Aberto";
 
-        if (dia.nome_feriado) {{
+        if (dia.eh_feriado_com_loja_aberta) {{
+          info = dia.nome_feriado_aberto;
+          tagClasse = "holiday-open";
+          tagTexto = "Aberto";
+        }} else if (dia.nome_feriado) {{
           info = dia.nome_feriado;
           tagClasse = "holiday";
           tagTexto = "Feriado";
@@ -1290,6 +1600,8 @@ function montarHtmlCalendarioPeg(dados) {{
   }});
 
   html += `
+        </div>
+        ${{montarLegendaCalendarioPeg()}}
       </div>
     </section>
   `;
@@ -1408,8 +1720,13 @@ setInterval(atualizarCalendarioPeg, 60000);
               </div>
 
               <div class="hours-item">
-                <span>Feriados cadastrados</span>
+                <span>Feriados fechados</span>
                 <strong>Fechado</strong>
+              </div>
+
+              <div class="hours-item">
+                <span>Feriados com loja aberta</span>
+                <strong>Funcionamento normal</strong>
               </div>
             </div>
           </div>
@@ -1567,7 +1884,7 @@ def api_proximo_feriado():
     return responder(
         dados,
         "Próximo feriado",
-        "Consulta do próximo feriado ou data fechada",
+        "Consulta do próximo feriado ou data cadastrada",
         dados.get("mensagem_resposta")
     )
 
@@ -1625,8 +1942,8 @@ def api_feriados_ano(ano):
     return responder(
         dados,
         f"Feriados {ano}",
-        "Datas fechadas cadastradas para a PEG",
-        f"{dados['total_feriados']} datas cadastradas como fechadas"
+        "Datas fechadas e datas com loja aberta cadastradas para a PEG",
+        f"{dados['total_feriados']} datas cadastradas"
     )
 
 
