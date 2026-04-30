@@ -687,13 +687,20 @@ body::before {
   color: var(--peg-muted);
 }
 
+.side-grid {
+  display: grid;
+  grid-template-columns: 0.88fr 1.12fr;
+  gap: 22px;
+  align-items: start;
+  margin-top: 22px;
+}
+
 .panel {
   border-radius: 24px;
   background: rgba(15, 23, 42, 0.74);
   border: 1px solid rgba(0, 200, 255, 0.14);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.26);
   overflow: hidden;
-  margin-top: 22px;
 }
 
 .panel-header {
@@ -703,6 +710,11 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+}
+
+.calendar-panel .panel-header {
+  background:
+    linear-gradient(135deg, rgba(0, 92, 255, 0.92), rgba(0, 200, 255, 0.40));
 }
 
 .panel-title {
@@ -718,13 +730,17 @@ body::before {
   font-size: 13px;
 }
 
+.calendar-panel .panel-subtitle {
+  color: rgba(255, 255, 255, 0.78);
+}
+
 .panel-body {
   padding: 18px 20px 20px;
 }
 
 .endpoints-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -745,6 +761,10 @@ body::before {
 .endpoint:hover {
   border-color: rgba(0, 200, 255, 0.42);
   box-shadow: 0 0 24px rgba(0, 200, 255, 0.13);
+}
+
+.json-panel {
+  margin-top: 22px;
 }
 
 .json {
@@ -783,6 +803,12 @@ body::before {
   border-right: 1px solid rgba(148, 163, 184, 0.10);
   border-bottom: 1px solid rgba(148, 163, 184, 0.10);
   background: rgba(15, 23, 42, 0.48);
+  transition: 0.22s ease;
+}
+
+.day:hover {
+  background: rgba(0, 92, 255, 0.14);
+  box-shadow: inset 0 0 18px rgba(0, 200, 255, 0.12);
 }
 
 .day.empty {
@@ -790,13 +816,17 @@ body::before {
 }
 
 .day.today {
-  background: rgba(0, 92, 255, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(0, 200, 255, 0.24), transparent 55%),
+    rgba(0, 92, 255, 0.18);
   outline: 2px solid rgba(0, 200, 255, 0.70);
   outline-offset: -2px;
 }
 
 .day.closed {
-  background: rgba(127, 29, 29, 0.30);
+  background:
+    radial-gradient(circle at top right, rgba(250, 204, 21, 0.12), transparent 55%),
+    rgba(127, 29, 29, 0.30);
   outline: 1px solid rgba(250, 204, 21, 0.42);
   outline-offset: -1px;
 }
@@ -814,6 +844,10 @@ body::before {
   line-height: 1.25;
 }
 
+.day.closed .day-info {
+  color: #fef3c7;
+}
+
 .footer {
   text-align: center;
   color: var(--peg-muted);
@@ -821,9 +855,9 @@ body::before {
   font-size: 13px;
 }
 
-@media (max-width: 920px) {
+@media (max-width: 980px) {
   .main-grid,
-  .endpoints-grid {
+  .side-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -907,7 +941,7 @@ def montar_calendario_html(calendario):
     nomes_dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
 
     calendario_html = f"""
-    <section class="panel">
+    <section class="panel calendar-panel">
       <div class="panel-header">
         <div>
           <h2 class="panel-title">Calendário de {calendario["mes_nome"]} de {calendario["ano"]}</h2>
@@ -1041,7 +1075,7 @@ async function atualizarCalendarioPeg() {
     const hoje = dados.hoje.data_atual;
 
     let html = `
-      <section class="panel">
+      <section class="panel calendar-panel">
         <div class="panel-header">
           <div>
             <h2 class="panel-title">Calendário de ${dados.mes_nome} de ${dados.ano}</h2>
@@ -1178,25 +1212,27 @@ setInterval(atualizarCalendarioPeg, 60000);
       </div>
     </section>
 
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <h2 class="panel-title">Endpoints visuais</h2>
-          <p class="panel-subtitle">Use sem ?visual=1 para retorno JSON no BotConversa</p>
+    <section class="side-grid">
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Endpoints visuais</h2>
+            <p class="panel-subtitle">Use sem ?visual=1 para retorno JSON no BotConversa</p>
+          </div>
         </div>
-      </div>
-      <div class="panel-body">
-        <div class="endpoints-grid">
-          {endpoint_cards()}
+        <div class="panel-body">
+          <div class="endpoints-grid">
+            {endpoint_cards()}
+          </div>
         </div>
+      </section>
+
+      <div id="calendarioAtualPeg">
+        {calendario_html}
       </div>
     </section>
 
-    <div id="calendarioAtualPeg">
-      {calendario_html}
-    </div>
-
-    <section class="panel">
+    <section class="panel json-panel">
       <div class="panel-header">
         <div>
           <h2 class="panel-title">Resposta JSON</h2>
