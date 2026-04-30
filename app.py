@@ -519,7 +519,7 @@ CSS_PEG = """
 body {
   margin: 0;
   min-height: 100vh;
-  padding: 28px 14px;
+  padding: 30px 18px;
   font-family: Arial, Helvetica, sans-serif;
   background:
     radial-gradient(circle at top left, rgba(0, 200, 255, 0.20), transparent 34%),
@@ -543,7 +543,7 @@ body::before {
 
 .page {
   width: 100%;
-  max-width: 1180px;
+  max-width: 1540px;
   margin: 0 auto;
   position: relative;
   z-index: 2;
@@ -553,8 +553,8 @@ body::before {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--peg-border);
-  border-radius: 28px;
-  padding: 28px;
+  border-radius: 30px;
+  padding: 32px;
   background:
     linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.72)),
     radial-gradient(circle at 30% 20%, rgba(0, 200, 255, 0.16), transparent 35%);
@@ -570,8 +570,8 @@ body::before {
   inset: 0;
   background-image: url("https://github.com/Pegdobrasil/peg-imagens-site/blob/main/logo%20branca.png?raw=true");
   background-repeat: no-repeat;
-  background-position: right 36px top 28px;
-  background-size: 220px auto;
+  background-position: right 42px top 32px;
+  background-size: 260px auto;
   opacity: 0.06;
   pointer-events: none;
 }
@@ -586,25 +586,25 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
 .brand-mark {
-  width: 74px;
-  height: 74px;
-  border-radius: 20px;
+  width: 82px;
+  height: 82px;
+  border-radius: 22px;
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(0, 200, 255, 0.24);
   box-shadow: 0 0 28px rgba(0, 200, 255, 0.25);
-  padding: 10px;
+  padding: 11px;
 }
 
 .brand-logo {
@@ -616,23 +616,23 @@ body::before {
 
 .brand-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1.1;
   color: white;
   font-weight: 900;
 }
 
 .brand-subtitle {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
   color: var(--peg-muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .live-pill {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  padding: 10px 14px;
+  padding: 11px 16px;
   border-radius: 999px;
   color: #dff7ff;
   background: rgba(0, 200, 255, 0.08);
@@ -665,20 +665,58 @@ body::before {
 
 .main-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 22px;
+  grid-template-columns: 1.28fr 0.72fr;
+  gap: 26px;
   align-items: stretch;
 }
 
 .clock-card,
 .status-card {
-  border-radius: 24px;
-  padding: 28px;
+  border-radius: 26px;
+  padding: 32px;
   background:
     radial-gradient(circle at top left, rgba(0, 200, 255, 0.18), transparent 36%),
     rgba(2, 6, 23, 0.58);
   border: 1px solid rgba(148, 163, 184, 0.16);
   box-shadow: inset 0 0 35px rgba(0, 200, 255, 0.04);
+}
+
+.status-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(0, 200, 255, 0.20), transparent 38%),
+    radial-gradient(circle at bottom left, rgba(0, 92, 255, 0.18), transparent 40%),
+    rgba(2, 6, 23, 0.66);
+}
+
+.status-card::before {
+  content: "";
+  position: absolute;
+  inset: -80px -80px auto auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(0, 200, 255, 0.10);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.status-card::after {
+  content: "";
+  position: absolute;
+  inset: auto auto -90px -90px;
+  width: 190px;
+  height: 190px;
+  border-radius: 999px;
+  background: rgba(0, 92, 255, 0.12);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.status-content {
+  position: relative;
+  z-index: 2;
 }
 
 .label {
@@ -691,15 +729,15 @@ body::before {
 }
 
 .date {
-  font-size: clamp(22px, 3vw, 34px);
+  font-size: clamp(26px, 2.8vw, 42px);
   font-weight: 900;
   color: #ffffff;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   text-transform: capitalize;
 }
 
 .clock {
-  font-size: clamp(58px, 10vw, 120px);
+  font-size: clamp(72px, 8vw, 138px);
   line-height: 0.9;
   font-weight: 900;
   letter-spacing: -4px;
@@ -717,17 +755,66 @@ body::before {
     0 0 70px rgba(0, 92, 255, 0.28);
 }
 
+.status-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.status-orb {
+  width: 76px;
+  height: 76px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.38), transparent 28%),
+    linear-gradient(135deg, rgba(0, 92, 255, 0.76), rgba(0, 200, 255, 0.56));
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 0 32px rgba(0, 200, 255, 0.20),
+    inset 0 0 20px rgba(255, 255, 255, 0.08);
+  font-size: 30px;
+  font-weight: 900;
+  color: white;
+}
+
+.status-text-block {
+  flex: 1;
+}
+
+.status-overline {
+  color: var(--peg-cyan);
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  font-weight: 900;
+  margin-bottom: 7px;
+}
+
+.status-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.12;
+  margin: 0;
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 13px 16px;
   border-radius: 999px;
   font-size: 14px;
   font-weight: 900;
   border: 1px solid rgba(0, 200, 255, 0.28);
   background: rgba(0, 200, 255, 0.08);
   color: #dff7ff;
+  max-width: 100%;
+  line-height: 1.35;
 }
 
 .status-badge.closed {
@@ -748,6 +835,38 @@ body::before {
   color: #ede9fe;
 }
 
+.status-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 20px 0 18px;
+}
+
+.status-mini-card {
+  padding: 14px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(0, 92, 255, 0.12), rgba(0, 200, 255, 0.05));
+  border: 1px solid rgba(0, 200, 255, 0.13);
+}
+
+.status-mini-card span {
+  display: block;
+  color: var(--peg-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 7px;
+}
+
+.status-mini-card strong {
+  display: block;
+  color: white;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
 .hours-list {
   display: grid;
   gap: 10px;
@@ -757,32 +876,33 @@ body::before {
 .hours-item {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   color: #dbeafe;
   font-size: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-}
-
-.hours-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.10);
+  background: rgba(15, 23, 42, 0.36);
 }
 
 .hours-item span:first-child {
   color: var(--peg-muted);
 }
 
+.hours-item strong {
+  text-align: right;
+}
+
 .side-grid {
   display: grid;
-  grid-template-columns: 0.88fr 1.12fr;
-  gap: 22px;
+  grid-template-columns: 0.72fr 1.28fr;
+  gap: 26px;
   align-items: start;
-  margin-top: 22px;
+  margin-top: 26px;
 }
 
 .panel {
-  border-radius: 24px;
+  border-radius: 26px;
   background: rgba(15, 23, 42, 0.74);
   border: 1px solid rgba(0, 200, 255, 0.14);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.26);
@@ -790,7 +910,7 @@ body::before {
 }
 
 .panel-header {
-  padding: 18px 20px;
+  padding: 20px 22px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   display: flex;
   align-items: center;
@@ -842,12 +962,12 @@ body::before {
 .panel-title {
   margin: 0;
   color: white;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
 }
 
 .panel-subtitle {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
   color: var(--peg-muted);
   font-size: 13px;
 }
@@ -857,7 +977,7 @@ body::before {
 }
 
 .panel-body {
-  padding: 18px 20px 20px;
+  padding: 20px 22px 22px;
 }
 
 .endpoints-grid {
@@ -874,7 +994,7 @@ body::before {
     linear-gradient(135deg, rgba(0, 92, 255, 0.16), rgba(0, 200, 255, 0.06));
   border: 1px solid rgba(0, 200, 255, 0.16);
   border-radius: 15px;
-  padding: 13px 14px;
+  padding: 14px 15px;
   font-size: 14px;
   font-weight: 800;
   word-break: break-word;
@@ -886,26 +1006,26 @@ body::before {
 }
 
 .json-panel {
-  margin-top: 22px;
+  margin-top: 26px;
 }
 
 .json {
   margin: 0;
-  padding: 18px 20px 22px;
+  padding: 20px 22px 24px;
   color: #dbeafe;
   text-align: left;
   font-size: 13px;
   line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 520px;
+  max-height: 560px;
   overflow: auto;
   background: rgba(2, 6, 23, 0.86);
 }
 
 .calendar-content {
   display: grid;
-  grid-template-columns: 1fr 180px;
+  grid-template-columns: 1fr 220px;
   gap: 0;
 }
 
@@ -916,7 +1036,7 @@ body::before {
 }
 
 .calendar-legend {
-  padding: 16px;
+  padding: 18px;
   background:
     radial-gradient(circle at top right, rgba(0, 200, 255, 0.10), transparent 48%),
     rgba(2, 6, 23, 0.62);
@@ -988,7 +1108,7 @@ body::before {
 }
 
 .day-name {
-  padding: 12px 6px;
+  padding: 13px 6px;
   text-align: center;
   color: #bfdbfe;
   font-size: 12px;
@@ -998,8 +1118,8 @@ body::before {
 }
 
 .day {
-  min-height: 82px;
-  padding: 9px;
+  min-height: 96px;
+  padding: 10px;
   border-right: 1px solid rgba(148, 163, 184, 0.10);
   border-bottom: 1px solid rgba(148, 163, 184, 0.10);
   background: rgba(15, 23, 42, 0.48);
@@ -1092,7 +1212,7 @@ body::before {
 }
 
 .day-number {
-  font-size: 17px;
+  font-size: 18px;
   color: white;
   font-weight: 900;
 }
@@ -1157,11 +1277,20 @@ body::before {
 .footer {
   text-align: center;
   color: var(--peg-muted);
-  margin-top: 22px;
+  margin-top: 26px;
   font-size: 13px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
+  .page {
+    max-width: 1120px;
+  }
+
+  .main-grid,
+  .side-grid {
+    grid-template-columns: 1fr;
+  }
+
   .calendar-content {
     grid-template-columns: 1fr;
   }
@@ -1169,13 +1298,6 @@ body::before {
   .calendar-legend {
     border-left: none;
     border-top: 1px solid rgba(148, 163, 184, 0.14);
-  }
-}
-
-@media (max-width: 980px) {
-  .main-grid,
-  .side-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1200,6 +1322,10 @@ body::before {
     border-radius: 18px;
   }
 
+  .brand-title {
+    font-size: 20px;
+  }
+
   .calendar-header-flex {
     align-items: flex-start;
     flex-direction: column;
@@ -1218,6 +1344,26 @@ body::before {
   .clock-card,
   .status-card {
     padding: 20px;
+  }
+
+  .status-topline {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .status-orb {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    font-size: 24px;
+  }
+
+  .status-title {
+    font-size: 20px;
+  }
+
+  .status-mini-grid {
+    grid-template-columns: 1fr;
   }
 
   .clock {
@@ -1410,17 +1556,27 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
     eh_feriado_com_loja_aberta = dados.get("eh_feriado_com_loja_aberta")
 
     badge_class = ""
+    status_icon = "●"
+    status_titulo = "Consulta ativa"
 
     if eh_feriado_com_loja_aberta:
         badge_class = "holiday-open"
+        status_icon = "◆"
+        status_titulo = "Feriado com loja aberta"
         status_final = status_texto or "Feriado com loja aberta"
     elif nome_feriado:
         badge_class = "holiday"
+        status_icon = "!"
+        status_titulo = "Fechado por feriado"
         status_final = f"Fechado: {nome_feriado}"
     elif loja_abre is False or atendimento_aberto is False:
         badge_class = "closed"
+        status_icon = "×"
+        status_titulo = "Atendimento fechado"
         status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Fechado"
     else:
+        status_icon = "✓"
+        status_titulo = "Atendimento aberto"
         status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Consulta disponível"
 
     calendario_html = montar_calendario_html(calendario)
@@ -1444,6 +1600,12 @@ async function atualizarHorarioPeg() {{
     const dataEl = document.getElementById("dataAtualPeg");
     const horaEl = document.getElementById("horaAtualPeg");
     const statusEl = document.getElementById("statusAtualPeg");
+    const statusTitleEl = document.getElementById("statusTituloPeg");
+    const statusOrbEl = document.getElementById("statusOrbPeg");
+    const miniDataEl = document.getElementById("statusMiniDataPeg");
+    const miniDiaEl = document.getElementById("statusMiniDiaPeg");
+    const miniHorarioEl = document.getElementById("statusMiniHorarioPeg");
+    const miniSituacaoEl = document.getElementById("statusMiniSituacaoPeg");
     const jsonEl = document.getElementById("jsonAtualPeg");
 
     if (dataEl) {{
@@ -1457,6 +1619,28 @@ async function atualizarHorarioPeg() {{
       horaEl.classList.add("tick");
     }}
 
+    let statusTitulo = "Atendimento aberto";
+    let statusIcone = "✓";
+
+    if (dados.eh_feriado_com_loja_aberta) {{
+      statusTitulo = "Feriado com loja aberta";
+      statusIcone = "◆";
+    }} else if (dados.nome_feriado) {{
+      statusTitulo = "Fechado por feriado";
+      statusIcone = "!";
+    }} else if (!dados.atendimento_aberto) {{
+      statusTitulo = "Atendimento fechado";
+      statusIcone = "×";
+    }}
+
+    if (statusTitleEl) {{
+      statusTitleEl.textContent = statusTitulo;
+    }}
+
+    if (statusOrbEl) {{
+      statusOrbEl.textContent = statusIcone;
+    }}
+
     if (statusEl) {{
       statusEl.textContent = dados.mensagem_atendimento;
       statusEl.classList.remove("closed", "holiday", "holiday-open");
@@ -1468,6 +1652,22 @@ async function atualizarHorarioPeg() {{
       }} else if (!dados.atendimento_aberto) {{
         statusEl.classList.add("closed");
       }}
+    }}
+
+    if (miniDataEl) {{
+      miniDataEl.textContent = dados.data_br;
+    }}
+
+    if (miniDiaEl) {{
+      miniDiaEl.textContent = dados.dia_semana;
+    }}
+
+    if (miniHorarioEl) {{
+      miniHorarioEl.textContent = dados.funcionamento_previsto_hoje || "Fechado";
+    }}
+
+    if (miniSituacaoEl) {{
+      miniSituacaoEl.textContent = dados.status_atendimento;
     }}
 
     if (jsonEl) {{
@@ -1698,35 +1898,67 @@ setInterval(atualizarCalendarioPeg, 60000);
           </div>
 
           <div class="status-card">
-            <div class="label">Status</div>
-            <div id="statusAtualPeg" class="status-badge {badge_class}">
-              {status_final}
-            </div>
+            <div class="status-content">
+              <div class="status-topline">
+                <div id="statusOrbPeg" class="status-orb">{status_icon}</div>
 
-            <div class="hours-list">
-              <div class="hours-item">
-                <span>Segunda a sexta</span>
-                <strong>09:00 às 18:00</strong>
+                <div class="status-text-block">
+                  <div class="status-overline">Status operacional</div>
+                  <h2 id="statusTituloPeg" class="status-title">{status_titulo}</h2>
+                </div>
               </div>
 
-              <div class="hours-item">
-                <span>Sábado</span>
-                <strong>09:00 às 13:00</strong>
+              <div id="statusAtualPeg" class="status-badge {badge_class}">
+                {status_final}
               </div>
 
-              <div class="hours-item">
-                <span>Domingo</span>
-                <strong>Fechado</strong>
+              <div class="status-mini-grid">
+                <div class="status-mini-card">
+                  <span>Data</span>
+                  <strong id="statusMiniDataPeg">{dados.get("data_br", "-")}</strong>
+                </div>
+
+                <div class="status-mini-card">
+                  <span>Dia</span>
+                  <strong id="statusMiniDiaPeg">{dados.get("dia_semana", "-")}</strong>
+                </div>
+
+                <div class="status-mini-card">
+                  <span>Funcionamento</span>
+                  <strong id="statusMiniHorarioPeg">{dados.get("funcionamento_previsto_hoje", dados.get("funcionamento_previsto", "Fechado"))}</strong>
+                </div>
+
+                <div class="status-mini-card">
+                  <span>Situação</span>
+                  <strong id="statusMiniSituacaoPeg">{dados.get("status_atendimento", "consulta")}</strong>
+                </div>
               </div>
 
-              <div class="hours-item">
-                <span>Feriados fechados</span>
-                <strong>Fechado</strong>
-              </div>
+              <div class="hours-list">
+                <div class="hours-item">
+                  <span>Segunda a sexta</span>
+                  <strong>09:00 às 18:00</strong>
+                </div>
 
-              <div class="hours-item">
-                <span>Feriados com loja aberta</span>
-                <strong>Funcionamento normal</strong>
+                <div class="hours-item">
+                  <span>Sábado</span>
+                  <strong>09:00 às 13:00</strong>
+                </div>
+
+                <div class="hours-item">
+                  <span>Domingo</span>
+                  <strong>Fechado</strong>
+                </div>
+
+                <div class="hours-item">
+                  <span>Feriados fechados</span>
+                  <strong>Fechado</strong>
+                </div>
+
+                <div class="hours-item">
+                  <span>Feriados com loja aberta</span>
+                  <strong>Funcionamento normal</strong>
+                </div>
               </div>
             </div>
           </div>
