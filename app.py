@@ -2206,17 +2206,48 @@ def index():
 @app.route("/api/inicio")
 def api_inicio():
     dados = obter_dados_horario()
-    agora = datetime.now(TIMEZONE_BRASILIA)
-    calendario_mes = gerar_calendario_mes(agora.year, agora.month)
 
-    return responder(
-        dados,
-        "Horário e Calendário PEG",
-        "Base de consulta para a Sam - BotConversa",
-        dados.get("mensagem_atendimento"),
-        calendario_mes,
-        tempo_real=True
-    )
+    return jsonify({
+        "empresa": dados.get("empresa"),
+        "timezone": dados.get("timezone"),
+
+        "data_atual": dados.get("data_atual"),
+        "data_br": dados.get("data_br"),
+        "data_extenso": dados.get("data_extenso"),
+
+        "dia_semana": dados.get("dia_semana"),
+        "dia_semana_numero": dados.get("dia_semana_numero"),
+
+        "hora_atual": dados.get("hora_atual"),
+        "ano_atual": dados.get("ano_atual"),
+        "mes_atual": dados.get("mes_atual"),
+        "mes_nome": dados.get("mes_nome"),
+        "dia_mes": dados.get("dia_mes"),
+
+        "atendimento_aberto": dados.get("atendimento_aberto"),
+        "status_atendimento": dados.get("status_atendimento"),
+        "mensagem_atendimento": dados.get("mensagem_atendimento"),
+
+        "loja_abre_hoje": dados.get("loja_abre_hoje"),
+        "funcionamento_previsto_hoje": dados.get("funcionamento_previsto_hoje"),
+
+        "eh_feriado_nacional": dados.get("eh_feriado_nacional"),
+        "eh_feriado_municipal": dados.get("eh_feriado_municipal"),
+        "eh_data_especial": dados.get("eh_data_especial"),
+        "nome_feriado": dados.get("nome_feriado"),
+
+        "eh_feriado_com_loja_aberta": dados.get("eh_feriado_com_loja_aberta"),
+        "nome_feriado_aberto": dados.get("nome_feriado_aberto"),
+        "observacao_feriado_aberto": dados.get("observacao_feriado_aberto"),
+
+        "motivo_fechamento": dados.get("motivo_fechamento"),
+
+        "segunda_a_sexta": dados.get("horario_funcionamento", {}).get("segunda_a_sexta"),
+        "sabado": dados.get("horario_funcionamento", {}).get("sabado"),
+        "domingo": dados.get("horario_funcionamento", {}).get("domingo"),
+        "feriados_fechados": dados.get("horario_funcionamento", {}).get("feriados_fechados"),
+        "feriados_com_loja_aberta": dados.get("horario_funcionamento", {}).get("feriados_com_loja_aberta")
+    })
 
 
 @app.route("/api/horario")
