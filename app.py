@@ -1,17 +1,13 @@
 from flask import Flask, jsonify, Response, request
-from datetime import datetime, date, timedelta, timezone
+from datetime import datetime, date, timedelta
+from zoneinfo import ZoneInfo
 import calendar
 import json
 import os
-import traceback
-
-try:
-    from zoneinfo import ZoneInfo
-    TIMEZONE_BRASILIA = ZoneInfo("America/Sao_Paulo")
-except Exception:
-    TIMEZONE_BRASILIA = timezone(timedelta(hours=-3))
 
 app = Flask(__name__)
+
+TIMEZONE_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 DIAS_SEMANA = {
     0: "segunda-feira",
@@ -61,18 +57,7 @@ def aplicar_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return response
-
-
-@app.errorhandler(Exception)
-def tratar_erro_geral(error):
-    return jsonify({
-        "erro": True,
-        "mensagem": "Erro interno no servidor.",
-        "detalhe": str(error),
-        "traceback": traceback.format_exc()
-    }), 500
 
 
 def calcular_pascoa(ano):
@@ -156,9 +141,10 @@ def obter_feriados_com_loja_aberta(ano):
 
 
 def obter_lista_feriados_abertos(ano):
-    lista = []
+    feriados = obter_feriados_com_loja_aberta(ano)
 
-    for data_feriado, item in sorted(obter_feriados_com_loja_aberta(ano).items()):
+    lista = []
+    for data_feriado, item in sorted(feriados.items()):
         lista.append({
             "data": data_feriado.strftime("%Y-%m-%d"),
             "data_br": data_feriado.strftime("%d/%m/%Y"),
@@ -327,6 +313,7 @@ def verificar_atendimento_agora():
             )
         else:
             mensagem_atendimento = "Estamos em horário de atendimento."
+
     else:
         status_atendimento = "fechado"
 
@@ -532,11 +519,13 @@ def proxima_data_por_dia_semana(dia_alvo):
         delta = 7
 
     data_alvo = hoje + timedelta(days=delta)
+
     return gerar_dados_data(data_alvo.year, data_alvo.month, data_alvo.day)
 
 
 def proximo_feriado():
     hoje = datetime.now(TIMEZONE_BRASILIA).date()
+
     eventos = []
 
     for ano in range(hoje.year, hoje.year + 3):
@@ -573,8 +562,8 @@ def responder(dados, titulo, subtitulo, status_texto=None, calendario=None, temp
 def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, tempo_real=False):
     dados_json = json.dumps(dados, ensure_ascii=False, indent=2)
 
-    atendimento_aberto = dados.get("atendimento_aberto", False)
     status_atendimento = dados.get("status_atendimento", "")
+    atendimento_aberto = dados.get("atendimento_aberto", False)
 
     if atendimento_aberto:
         status_classe = "aberto"
@@ -587,6 +576,7 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
 
     if calendario:
         dias_semana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+
         calendario_html += "<div class='calendario-grid'>"
 
         for nome_dia in dias_semana:
@@ -745,6 +735,12 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
                 margin-bottom: 12px;
             }}
 
+            .status-box {{
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }}
+
             .status-texto {{
                 text-align: center;
                 padding: 18px;
@@ -760,7 +756,6 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
-                margin-top: 16px;
             }}
 
             .mini {{
@@ -833,6 +828,10 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
             .dia small {{
                 font-size: 11px;
                 color: #94a3b8;
+            }}
+
+            .dia.aberto {{
+                border-color: rgba(0, 200, 255, 0.22);
             }}
 
             .dia.fechado {{
@@ -935,7 +934,7 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
                         <div class="hora">{dados.get("hora_atual", "")}</div>
                     </div>
 
-                    <div class="card">
+                    <div class="card status-box">
                         <div class="label">Status operacional</div>
 
                         <div class="status-texto">
@@ -964,7 +963,7 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
                             </div>
                         </div>
 
-                        <div style="margin-top: 18px;">
+                        <div>
                             <div class="label">A loja não fecha em</div>
                             <ul class="feriados-lista">
                                 <li>Nossa Senhora da Luz dos Pinhais</li>
@@ -982,7 +981,7 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
                     </div>
 
                     <div class="card">
-                        <div class="label" style="text-align:center;">Consulta</div>
+                        <div class="label">Consulta</div>
 
                         <div class="links">
                             <a class="link-card" href="/api/inicio">/api/inicio JSON para BotConversa</a>
@@ -991,7 +990,6 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
                             <a class="link-card" href="/api/amanha">/api/amanha JSON</a>
                             <a class="link-card" href="/api/proximo-feriado">/api/proximo-feriado JSON</a>
                             <a class="link-card" href="/api/calendario">/api/calendario JSON</a>
-                            <a class="link-card" href="/health">/health teste do servidor</a>
                         </div>
                     </div>
                 </div>
@@ -1163,11 +1161,10 @@ def api_data_especifica(data_texto):
             dados.get("mensagem_resposta")
         )
 
-    except Exception as error:
+    except Exception:
         return jsonify({
             "erro": True,
-            "mensagem": "Não foi possível consultar a data. Use AAAA-MM-DD.",
-            "detalhe": str(error)
+            "mensagem": "Não foi possível consultar a data. Use AAAA-MM-DD."
         }), 400
 
 
@@ -1270,14 +1267,9 @@ def api_calendario_mes(ano, mes):
 
 @app.route("/health")
 def health():
-    agora = datetime.now(TIMEZONE_BRASILIA)
-
     return jsonify({
         "status": "online",
-        "servico": "horario-calendario-feriados-peg",
-        "data": agora.strftime("%Y-%m-%d"),
-        "hora": agora.strftime("%H:%M:%S"),
-        "timezone": "America/Sao_Paulo"
+        "servico": "horario-calendario-feriados-peg"
     })
 
 
