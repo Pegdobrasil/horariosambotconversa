@@ -229,333 +229,721 @@ def index():
       box-sizing: border-box;
     }}
 
+    :root {{
+      --peg-blue: #005cff;
+      --peg-cyan: #00c8ff;
+      --peg-dark: #020617;
+      --peg-card: rgba(15, 23, 42, 0.78);
+      --peg-border: rgba(0, 200, 255, 0.22);
+      --peg-text: #e5f4ff;
+      --peg-muted: #94a3b8;
+      --peg-green: #22c55e;
+      --peg-red: #ef4444;
+    }}
+
     body {{
       margin: 0;
-      padding: 30px 15px;
+      min-height: 100vh;
+      padding: 28px 14px;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f4f7fb;
-      color: #111827;
+      background:
+        radial-gradient(circle at top left, rgba(0, 200, 255, 0.20), transparent 34%),
+        radial-gradient(circle at top right, rgba(0, 92, 255, 0.22), transparent 32%),
+        linear-gradient(135deg, #020617 0%, #071527 45%, #020617 100%);
+      color: var(--peg-text);
+      overflow-x: hidden;
     }}
 
-    .peg-wrapper {{
-      max-width: 1050px;
+    body::before {{
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 85%);
+      pointer-events: none;
+    }}
+
+    .page {{
+      width: 100%;
+      max-width: 1180px;
       margin: 0 auto;
-      background: #ffffff;
-      border-radius: 18px;
-      padding: 30px;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.10);
-      border: 1px solid #dbe4f0;
-      text-align: center;
+      position: relative;
+      z-index: 2;
+    }}
+
+    .hero {{
       position: relative;
       overflow: hidden;
+      border: 1px solid var(--peg-border);
+      border-radius: 28px;
+      padding: 28px;
+      background:
+        linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.72)),
+        radial-gradient(circle at 30% 20%, rgba(0, 200, 255, 0.16), transparent 35%);
+      box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.35),
+        0 0 55px rgba(0, 92, 255, 0.18);
+      backdrop-filter: blur(14px);
     }}
 
-    .peg-wrapper::before {{
+    .hero::before {{
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(120deg, transparent, rgba(0, 200, 255, 0.34), transparent);
+      transform: translateX(-100%);
+      animation: neonSweep 7s infinite;
+      pointer-events: none;
+    }}
+
+    .hero::after {{
       content: "";
       position: absolute;
       inset: 0;
       background-image: url("https://github.com/Pegdobrasil/peg-imagens-site/blob/main/logo%20branca.png?raw=true");
       background-repeat: no-repeat;
-      background-position: center;
-      background-size: 420px auto;
-      opacity: 0.04;
+      background-position: right 36px top 28px;
+      background-size: 220px auto;
+      opacity: 0.06;
       pointer-events: none;
     }}
 
-    .peg-content {{
+    @keyframes neonSweep {{
+      0% {{
+        transform: translateX(-100%);
+        opacity: 0;
+      }}
+      28% {{
+        opacity: 1;
+      }}
+      55% {{
+        transform: translateX(100%);
+        opacity: 0;
+      }}
+      100% {{
+        transform: translateX(100%);
+        opacity: 0;
+      }}
+    }}
+
+    .hero-content {{
       position: relative;
       z-index: 2;
     }}
 
-    .peg-title {{
-      font-size: 36px;
-      font-weight: 900;
-      margin: 0;
-      color: #002b5c;
+    .topbar {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
     }}
 
-    .peg-subtitle {{
-      margin: 8px 0 22px;
-      color: #475569;
-      font-size: 15px;
+    .brand {{
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }}
 
-    .peg-divider {{
-      width: 100%;
-      height: 1px;
-      background: #d7dee9;
-      margin: 20px 0;
-    }}
-
-    .peg-date {{
-      font-size: 27px;
-      font-weight: 800;
-      color: #111827;
-      margin-bottom: 20px;
-    }}
-
-    .peg-clock-box {{
-      background: #e8eef7;
-      border: 1px solid #cbd5e1;
-      border-radius: 16px;
-      padding: 38px 15px;
-      margin-bottom: 20px;
-    }}
-
-    .peg-clock {{
-      font-size: clamp(60px, 12vw, 145px);
-      line-height: 1;
-      font-weight: 900;
-      letter-spacing: 2px;
-      color: #101827;
-    }}
-
-    .peg-status {{
-      display: inline-block;
-      margin-top: 5px;
-      padding: 10px 18px;
-      border-radius: 999px;
-      font-size: 15px;
-      font-weight: 800;
-      background: #eaf4ff;
-      color: #005c99;
-      border: 1px solid #b7dfff;
-    }}
-
-    .peg-grid {{
+    .brand-mark {{
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-top: 30px;
-      text-align: left;
-    }}
-
-    .peg-card {{
-      background: #f8fbff;
-      border: 1px solid #dbeafe;
-      border-radius: 14px;
-      padding: 18px;
-    }}
-
-    .peg-card-title {{
-      font-size: 17px;
+      place-items: center;
+      background: linear-gradient(135deg, var(--peg-blue), var(--peg-cyan));
+      box-shadow: 0 0 28px rgba(0, 200, 255, 0.35);
       font-weight: 900;
-      color: #002b5c;
+      color: white;
+      letter-spacing: -1px;
+      font-size: 18px;
+    }}
+
+    .brand-title {{
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+      color: white;
+      font-weight: 900;
+    }}
+
+    .brand-subtitle {{
+      margin: 4px 0 0;
+      color: var(--peg-muted);
+      font-size: 13px;
+    }}
+
+    .live-pill {{
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: #dff7ff;
+      background: rgba(0, 200, 255, 0.08);
+      border: 1px solid rgba(0, 200, 255, 0.28);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }}
+
+    .live-dot {{
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--peg-green);
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.85);
+      animation: pulse 1.4s infinite;
+    }}
+
+    @keyframes pulse {{
+      0%, 100% {{
+        transform: scale(1);
+        opacity: 1;
+      }}
+      50% {{
+        transform: scale(1.35);
+        opacity: 0.65;
+      }}
+    }}
+
+    .main-grid {{
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+      align-items: stretch;
+    }}
+
+    .clock-card {{
+      border-radius: 24px;
+      padding: 28px;
+      background:
+        radial-gradient(circle at top left, rgba(0, 200, 255, 0.18), transparent 36%),
+        rgba(2, 6, 23, 0.58);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: inset 0 0 35px rgba(0, 200, 255, 0.04);
+    }}
+
+    .label {{
+      color: var(--peg-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1.6px;
+      font-weight: 900;
+      font-size: 12px;
       margin-bottom: 12px;
     }}
 
-    .peg-link {{
-      display: block;
-      background: #eff6ff;
-      color: #005c99;
-      padding: 11px 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      text-decoration: none;
-      border: 1px solid #bfdbfe;
-      margin-bottom: 8px;
-      word-break: break-word;
-      font-weight: 700;
-    }}
-
-    .peg-link:hover {{
-      background: #dbeafe;
-    }}
-
-    .peg-json {{
-      margin-top: 30px;
-      background: #0f172a;
-      color: #e5e7eb;
-      padding: 16px;
-      border-radius: 12px;
-      text-align: left;
-      font-size: 14px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }}
-
-    .peg-calendar {{
-      margin-top: 25px;
-      background: #ffffff;
-      border: 1px solid #dbe4f0;
-      border-radius: 14px;
-      overflow: hidden;
-    }}
-
-    .peg-calendar-header {{
-      background: #002b5c;
-      color: #ffffff;
-      padding: 14px;
+    .date {{
+      font-size: clamp(22px, 3vw, 34px);
       font-weight: 900;
-      font-size: 18px;
+      color: #ffffff;
+      margin-bottom: 24px;
       text-transform: capitalize;
     }}
 
-    .peg-calendar-grid {{
+    .clock {{
+      font-size: clamp(64px, 11vw, 142px);
+      line-height: 0.9;
+      font-weight: 900;
+      letter-spacing: -4px;
+      color: white;
+      text-shadow:
+        0 0 22px rgba(0, 200, 255, 0.22),
+        0 0 52px rgba(0, 92, 255, 0.18);
+    }}
+
+    .timezone {{
+      margin-top: 18px;
+      color: var(--peg-muted);
+      font-size: 14px;
+    }}
+
+    .side-card {{
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }}
+
+    .status-card,
+    .mini-card {{
+      border-radius: 22px;
+      padding: 20px;
+      background: var(--peg-card);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.20);
+    }}
+
+    .status-title {{
+      font-size: 14px;
+      color: var(--peg-muted);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }}
+
+    .status-badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 900;
+      border: 1px solid rgba(0, 200, 255, 0.28);
+      background: rgba(0, 200, 255, 0.08);
+      color: #dff7ff;
+    }}
+
+    .status-badge.closed {{
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.10);
+      color: #fee2e2;
+    }}
+
+    .status-dot {{
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--peg-green);
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.9);
+    }}
+
+    .status-dot.closed {{
+      background: var(--peg-red);
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.9);
+    }}
+
+    .hours-list {{
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }}
+
+    .hours-item {{
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: #dbeafe;
+      font-size: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }}
+
+    .hours-item:last-child {{
+      border-bottom: none;
+      padding-bottom: 0;
+    }}
+
+    .hours-item span:first-child {{
+      color: var(--peg-muted);
+    }}
+
+    .section-grid {{
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 22px;
+      margin-top: 22px;
+    }}
+
+    .panel {{
+      border-radius: 24px;
+      background: rgba(15, 23, 42, 0.74);
+      border: 1px solid rgba(0, 200, 255, 0.14);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.26);
+      overflow: hidden;
+    }}
+
+    .panel-header {{
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }}
+
+    .panel-title {{
+      margin: 0;
+      color: white;
+      font-size: 18px;
+      font-weight: 900;
+    }}
+
+    .panel-subtitle {{
+      margin: 4px 0 0;
+      color: var(--peg-muted);
+      font-size: 13px;
+    }}
+
+    .panel-body {{
+      padding: 18px 20px 20px;
+    }}
+
+    .endpoint {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #e0f2fe;
+      text-decoration: none;
+      background:
+        linear-gradient(135deg, rgba(0, 92, 255, 0.16), rgba(0, 200, 255, 0.06));
+      border: 1px solid rgba(0, 200, 255, 0.16);
+      border-radius: 15px;
+      padding: 13px 14px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      word-break: break-word;
+      transition: 0.25s ease;
+    }}
+
+    .endpoint:hover {{
+      transform: translateY(-2px);
+      border-color: rgba(0, 200, 255, 0.42);
+      box-shadow: 0 0 24px rgba(0, 200, 255, 0.13);
+    }}
+
+    .endpoint small {{
+      color: var(--peg-muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }}
+
+    .calendar {{
+      margin: 0;
+    }}
+
+    .calendar-top {{
+      background:
+        linear-gradient(135deg, rgba(0, 92, 255, 0.96), rgba(0, 200, 255, 0.76));
+      padding: 18px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }}
+
+    .calendar-month {{
+      font-size: 20px;
+      font-weight: 900;
+      text-transform: capitalize;
+    }}
+
+    .calendar-note {{
+      font-size: 12px;
+      opacity: 0.85;
+      font-weight: 800;
+    }}
+
+    .calendar-grid {{
       display: grid;
       grid-template-columns: repeat(7, 1fr);
+      background: rgba(2, 6, 23, 0.50);
     }}
 
-    .peg-calendar-day-name {{
-      background: #e8eef7;
-      padding: 10px 5px;
-      font-weight: 800;
-      color: #002b5c;
-      border-bottom: 1px solid #dbe4f0;
-      font-size: 13px;
+    .day-name {{
+      padding: 12px 6px;
+      text-align: center;
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 900;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(2, 6, 23, 0.40);
     }}
 
-    .peg-calendar-day {{
-      min-height: 72px;
-      border-right: 1px solid #e5e7eb;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 8px;
-      font-size: 13px;
-      text-align: left;
-      background: #ffffff;
+    .day {{
+      min-height: 82px;
+      padding: 9px;
+      border-right: 1px solid rgba(148, 163, 184, 0.10);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.10);
+      background: rgba(15, 23, 42, 0.48);
+      position: relative;
     }}
 
-    .peg-calendar-day:nth-child(7n) {{
+    .day:nth-child(7n) {{
       border-right: none;
     }}
 
-    .peg-calendar-day.empty {{
-      background: #f8fafc;
+    .day.empty {{
+      background: rgba(15, 23, 42, 0.20);
     }}
 
-    .peg-calendar-day.today {{
-      background: #eaf4ff;
-      border: 2px solid #005c99;
+    .day.today {{
+      background:
+        radial-gradient(circle at top right, rgba(0, 200, 255, 0.22), transparent 55%),
+        rgba(0, 92, 255, 0.18);
+      outline: 2px solid rgba(0, 200, 255, 0.70);
+      outline-offset: -2px;
+      box-shadow: inset 0 0 24px rgba(0, 200, 255, 0.14);
+    }}
+
+    .day-number {{
+      font-size: 17px;
+      color: white;
       font-weight: 900;
     }}
 
-    .peg-calendar-number {{
-      font-weight: 900;
-      font-size: 16px;
-      color: #111827;
+    .day-info {{
+      margin-top: 7px;
+      color: var(--peg-muted);
+      font-size: 11px;
+      line-height: 1.25;
     }}
 
-    .peg-calendar-info {{
-      margin-top: 6px;
-      color: #64748b;
+    .day.today .day-info {{
+      color: #dff7ff;
+    }}
+
+    .json-box {{
+      margin-top: 22px;
+      border-radius: 24px;
+      background: rgba(2, 6, 23, 0.86);
+      border: 1px solid rgba(0, 200, 255, 0.14);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.26);
+    }}
+
+    .json-header {{
+      padding: 16px 20px;
+      color: white;
+      font-weight: 900;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }}
+
+    .json-header span {{
+      color: var(--peg-muted);
       font-size: 12px;
+      font-weight: 800;
     }}
 
-    .peg-footer {{
-      margin-top: 20px;
+    .json {{
+      margin: 0;
+      padding: 18px 20px 22px;
+      color: #dbeafe;
+      text-align: left;
       font-size: 13px;
-      color: #64748b;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 360px;
+      overflow: auto;
     }}
 
-    @media (max-width: 800px) {{
-      .peg-grid {{
+    .footer {{
+      text-align: center;
+      color: var(--peg-muted);
+      margin-top: 22px;
+      font-size: 13px;
+    }}
+
+    @media (max-width: 920px) {{
+      .main-grid,
+      .section-grid {{
         grid-template-columns: 1fr;
       }}
+
+      .hero::after {{
+        background-position: center top 34px;
+        background-size: 180px auto;
+      }}
     }}
 
-    @media (max-width: 600px) {{
+    @media (max-width: 620px) {{
       body {{
-        padding: 15px;
+        padding: 14px;
       }}
 
-      .peg-wrapper {{
-        padding: 22px 16px;
+      .hero {{
+        padding: 18px;
+        border-radius: 22px;
       }}
 
-      .peg-title {{
-        font-size: 27px;
+      .topbar {{
+        flex-direction: column;
+        align-items: flex-start;
       }}
 
-      .peg-date {{
-        font-size: 20px;
+      .brand-mark {{
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
       }}
 
-      .peg-clock-box {{
-        padding: 28px 10px;
+      .clock-card {{
+        padding: 20px;
+        border-radius: 20px;
       }}
 
-      .peg-calendar-day {{
+      .clock {{
+        letter-spacing: -2px;
+      }}
+
+      .section-grid {{
+        gap: 16px;
+      }}
+
+      .panel-header {{
+        flex-direction: column;
+        align-items: flex-start;
+      }}
+
+      .day {{
         min-height: 58px;
         padding: 5px;
-        font-size: 11px;
       }}
 
-      .peg-calendar-day-name {{
-        font-size: 11px;
-        padding: 8px 3px;
-      }}
-
-      .peg-calendar-number {{
-        font-size: 14px;
-      }}
-
-      .peg-calendar-info {{
+      .day-info {{
         display: none;
+      }}
+
+      .day-name {{
+        font-size: 10px;
+        padding: 9px 3px;
+      }}
+
+      .day-number {{
+        font-size: 14px;
       }}
     }}
   </style>
 </head>
 
 <body>
+  <div class="page">
 
-  <main class="peg-wrapper">
-    <div class="peg-content">
+    <section class="hero">
+      <div class="hero-content">
 
-      <h1 class="peg-title">Horário e Calendário de Brasília</h1>
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-mark">PEG</div>
+            <div>
+              <h1 class="brand-title">Horário e Calendário PEG</h1>
+              <p class="brand-subtitle">Base de consulta para a Sam - BotConversa</p>
+            </div>
+          </div>
 
-      <p class="peg-subtitle">
-        Consulta de data, hora e calendário para integração da Sam - PEG do Brasil
-      </p>
+          <div class="live-pill">
+            <span class="live-dot"></span>
+            Atualização em tempo real
+          </div>
+        </div>
 
-      <div class="peg-divider"></div>
+        <div class="main-grid">
+          <div class="clock-card">
+            <div class="label">Horário de Brasília</div>
 
-      <div id="dataAtual" class="peg-date">
-        {dados["data_extenso"].capitalize()}
+            <div id="dataAtual" class="date">
+              {dados["data_extenso"].capitalize()}
+            </div>
+
+            <div id="horaAtual" class="clock">
+              {dados["hora_atual"]}
+            </div>
+
+            <div class="timezone">
+              Fuso usado pela API: America/Sao_Paulo
+            </div>
+          </div>
+
+          <aside class="side-card">
+            <div class="status-card">
+              <div class="status-title">Status de atendimento</div>
+
+              <div id="statusBadge" class="status-badge">
+                <span id="statusDot" class="status-dot"></span>
+                <span id="statusAtendimento">{dados["mensagem_atendimento"]}</span>
+              </div>
+            </div>
+
+            <div class="mini-card">
+              <div class="status-title">Horário de funcionamento</div>
+
+              <div class="hours-list">
+                <div class="hours-item">
+                  <span>Segunda a sexta</span>
+                  <strong>09:00 às 18:00</strong>
+                </div>
+
+                <div class="hours-item">
+                  <span>Sábado</span>
+                  <strong>09:00 às 13:00</strong>
+                </div>
+
+                <div class="hours-item">
+                  <span>Domingo</span>
+                  <strong>Fechado</strong>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
       </div>
+    </section>
 
-      <div class="peg-clock-box">
-        <div id="horaAtual" class="peg-clock">
-          {dados["hora_atual"]}
+    <section class="section-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Endpoints da integração</h2>
+            <p class="panel-subtitle">Links para a Sam consultar pelo BotConversa</p>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <a class="endpoint" href="/api/horario" target="_blank">
+            <span>/api/horario</span>
+            <small>hora atual</small>
+          </a>
+
+          <a class="endpoint" href="/api/calendario" target="_blank">
+            <span>/api/calendario</span>
+            <small>mês atual</small>
+          </a>
+
+          <a class="endpoint" href="/api/calendario/{dados["ano_atual"]}" target="_blank">
+            <span>/api/calendario/{dados["ano_atual"]}</span>
+            <small>ano completo</small>
+          </a>
+
+          <a class="endpoint" href="/api/calendario/{dados["ano_atual"]}/{dados["mes_atual"]:02d}" target="_blank">
+            <span>/api/calendario/{dados["ano_atual"]}/{dados["mes_atual"]:02d}</span>
+            <small>mês específico</small>
+          </a>
+
+          <a class="endpoint" href="/api/data/{dados["data_atual"]}" target="_blank">
+            <span>/api/data/{dados["data_atual"]}</span>
+            <small>data específica</small>
+          </a>
         </div>
       </div>
 
-      <div id="statusAtendimento" class="peg-status">
-        {dados["mensagem_atendimento"]}
+      <div id="calendarioVisual" class="panel calendar"></div>
+    </section>
+
+    <section class="json-box">
+      <div class="json-header">
+        Resposta atual da API
+        <span>JSON usado pela integração</span>
       </div>
 
-      <div class="peg-grid">
-        <div class="peg-card">
-          <div class="peg-card-title">Endpoints para o BotConversa</div>
+      <pre id="jsonIntegracao" class="json"></pre>
+    </section>
 
-          <a class="peg-link" href="/api/horario" target="_blank">/api/horario</a>
-          <a class="peg-link" href="/api/calendario" target="_blank">/api/calendario</a>
-          <a class="peg-link" href="/api/calendario/{dados["ano_atual"]}" target="_blank">/api/calendario/{dados["ano_atual"]}</a>
-          <a class="peg-link" href="/api/calendario/{dados["ano_atual"]}/{dados["mes_atual"]:02d}" target="_blank">/api/calendario/{dados["ano_atual"]}/{dados["mes_atual"]:02d}</a>
-          <a class="peg-link" href="/api/data/{dados["data_atual"]}" target="_blank">/api/data/{dados["data_atual"]}</a>
-        </div>
-
-        <div class="peg-card">
-          <div class="peg-card-title">Como a Sam pode consultar</div>
-
-          <p><strong>Data e hora atual:</strong><br>/api/horario</p>
-          <p><strong>Mês atual:</strong><br>/api/calendario</p>
-          <p><strong>Ano completo:</strong><br>/api/calendario/2026</p>
-          <p><strong>Mês específico:</strong><br>/api/calendario/2026/04</p>
-          <p><strong>Data específica:</strong><br>/api/data/2026-04-30</p>
-        </div>
-      </div>
-
-      <div id="calendarioVisual" class="peg-calendar"></div>
-
-      <pre id="jsonIntegracao" class="peg-json"></pre>
-
-      <div class="peg-footer">
-        PEG do Brasil - Data, hora e calendário atualizados automaticamente pelo fuso de Brasília
-      </div>
-
+    <div class="footer">
+      PEG do Brasil - Sistema de data, hora e calendário para atendimento automatizado
     </div>
-  </main>
+
+  </div>
 
   <script>
     async function atualizarHorario() {{
@@ -573,6 +961,17 @@ def index():
 
         document.getElementById("statusAtendimento").textContent =
           dados.mensagem_atendimento;
+
+        const statusBadge = document.getElementById("statusBadge");
+        const statusDot = document.getElementById("statusDot");
+
+        if (dados.atendimento_aberto) {{
+          statusBadge.classList.remove("closed");
+          statusDot.classList.remove("closed");
+        }} else {{
+          statusBadge.classList.add("closed");
+          statusDot.classList.add("closed");
+        }}
 
         document.getElementById("jsonIntegracao").textContent =
           JSON.stringify(dados, null, 2);
@@ -600,24 +999,34 @@ def index():
 
         let html = "";
 
-        html += `<div class="peg-calendar-header">${{calendario.mes_nome}} de ${{calendario.ano}}</div>`;
-        html += `<div class="peg-calendar-grid">`;
+        html += `
+          <div class="calendar-top">
+            <div>
+              <div class="calendar-month">${{calendario.mes_nome}} de ${{calendario.ano}}</div>
+              <div class="calendar-note">Calendário operacional da PEG</div>
+            </div>
+            <div class="calendar-note">${{calendario.total_dias}} dias</div>
+          </div>
+        `;
+
+        html += `<div class="calendar-grid">`;
 
         nomesDias.forEach(nome => {{
-          html += `<div class="peg-calendar-day-name">${{nome}}</div>`;
+          html += `<div class="day-name">${{nome}}</div>`;
         }});
 
         calendario.semanas.forEach(semana => {{
           semana.forEach(dia => {{
             if (!dia) {{
-              html += `<div class="peg-calendar-day empty"></div>`;
+              html += `<div class="day empty"></div>`;
             }} else {{
               const hoje = dia.data === calendario.hoje.data_atual ? "today" : "";
+
               html += `
-                <div class="peg-calendar-day ${{hoje}}">
-                  <div class="peg-calendar-number">${{dia.dia}}</div>
-                  <div class="peg-calendar-info">${{dia.dia_semana}}</div>
-                  <div class="peg-calendar-info">${{dia.funcionamento_previsto}}</div>
+                <div class="day ${{hoje}}">
+                  <div class="day-number">${{dia.dia}}</div>
+                  <div class="day-info">${{dia.dia_semana}}</div>
+                  <div class="day-info">${{dia.funcionamento_previsto}}</div>
                 </div>
               `;
             }}
@@ -630,7 +1039,7 @@ def index():
 
       }} catch (erro) {{
         document.getElementById("calendarioVisual").innerHTML =
-          "<div class='peg-calendar-header'>Erro ao carregar calendário</div>";
+          "<div class='calendar-top'><div class='calendar-month'>Erro ao carregar calendário</div></div>";
       }}
     }}
 
