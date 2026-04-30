@@ -77,7 +77,7 @@ def obter_datas_fechadas(ano):
     sexta_feira_santa = pascoa - timedelta(days=2)
     corpus_christi = pascoa + timedelta(days=60)
 
-    datas = {
+    return {
         date(ano, 1, 1): {
             "nome": "Confraternização Universal",
             "tipo": "feriado_nacional"
@@ -115,8 +115,6 @@ def obter_datas_fechadas(ano):
             "tipo": "feriado_nacional"
         }
     }
-
-    return datas
 
 
 def obter_feriados_com_loja_aberta(ano):
@@ -681,6 +679,16 @@ body::before {
   box-shadow: inset 0 0 35px rgba(0, 200, 255, 0.04);
 }
 
+.clock-card {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 44px 36px;
+}
+
 .status-card {
   position: relative;
   overflow: hidden;
@@ -725,23 +733,25 @@ body::before {
   letter-spacing: 1.6px;
   font-weight: 900;
   font-size: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .date {
   font-size: clamp(26px, 2.8vw, 42px);
   font-weight: 900;
   color: #ffffff;
-  margin-bottom: 22px;
+  margin-bottom: 26px;
   text-transform: capitalize;
+  max-width: 100%;
 }
 
 .clock {
-  font-size: clamp(72px, 8vw, 138px);
+  font-size: clamp(78px, 8vw, 150px);
   line-height: 0.9;
   font-weight: 900;
   letter-spacing: -4px;
   color: white;
+  text-align: center;
   text-shadow:
     0 0 22px rgba(0, 200, 255, 0.22),
     0 0 52px rgba(0, 92, 255, 0.18);
@@ -764,21 +774,95 @@ body::before {
 }
 
 .status-orb {
-  width: 76px;
-  height: 76px;
+  width: 82px;
+  height: 82px;
+  min-width: 82px;
   border-radius: 24px;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.38), transparent 28%),
-    linear-gradient(135deg, rgba(0, 92, 255, 0.76), rgba(0, 200, 255, 0.56));
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 200, 255, 0.20);
+  padding: 12px;
   box-shadow:
-    0 0 32px rgba(0, 200, 255, 0.20),
-    inset 0 0 20px rgba(255, 255, 255, 0.08);
-  font-size: 30px;
-  font-weight: 900;
-  color: white;
+    0 0 28px rgba(0, 200, 255, 0.18),
+    inset 0 0 20px rgba(255, 255, 255, 0.05);
+  transition: 0.25s ease;
+}
+
+.status-orb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.status-orb.open {
+  border-color: rgba(34, 197, 94, 0.48);
+  animation: statusFadeGreen 2.8s ease-in-out infinite;
+}
+
+.status-orb.closed {
+  border-color: rgba(239, 68, 68, 0.52);
+  animation: statusFadeRed 2.8s ease-in-out infinite;
+}
+
+.status-orb.holiday {
+  border-color: rgba(250, 204, 21, 0.52);
+  animation: statusFadeYellow 2.8s ease-in-out infinite;
+}
+
+@keyframes statusFadeGreen {
+  0%, 100% {
+    box-shadow:
+      0 0 16px rgba(34, 197, 94, 0.16),
+      0 0 34px rgba(34, 197, 94, 0.10),
+      inset 0 0 16px rgba(34, 197, 94, 0.05);
+    background: rgba(34, 197, 94, 0.04);
+  }
+
+  50% {
+    box-shadow:
+      0 0 34px rgba(34, 197, 94, 0.55),
+      0 0 74px rgba(34, 197, 94, 0.32),
+      inset 0 0 26px rgba(34, 197, 94, 0.14);
+    background: rgba(34, 197, 94, 0.14);
+  }
+}
+
+@keyframes statusFadeRed {
+  0%, 100% {
+    box-shadow:
+      0 0 16px rgba(239, 68, 68, 0.16),
+      0 0 34px rgba(239, 68, 68, 0.10),
+      inset 0 0 16px rgba(239, 68, 68, 0.05);
+    background: rgba(239, 68, 68, 0.04);
+  }
+
+  50% {
+    box-shadow:
+      0 0 34px rgba(239, 68, 68, 0.58),
+      0 0 74px rgba(239, 68, 68, 0.34),
+      inset 0 0 26px rgba(239, 68, 68, 0.15);
+    background: rgba(239, 68, 68, 0.14);
+  }
+}
+
+@keyframes statusFadeYellow {
+  0%, 100% {
+    box-shadow:
+      0 0 16px rgba(250, 204, 21, 0.16),
+      0 0 34px rgba(250, 204, 21, 0.10),
+      inset 0 0 16px rgba(250, 204, 21, 0.05);
+    background: rgba(250, 204, 21, 0.04);
+  }
+
+  50% {
+    box-shadow:
+      0 0 34px rgba(250, 204, 21, 0.58),
+      0 0 74px rgba(250, 204, 21, 0.34),
+      inset 0 0 26px rgba(250, 204, 21, 0.15);
+    background: rgba(250, 204, 21, 0.14);
+  }
 }
 
 .status-text-block {
@@ -830,9 +914,9 @@ body::before {
 }
 
 .status-badge.holiday-open {
-  border-color: rgba(168, 85, 247, 0.48);
-  background: rgba(168, 85, 247, 0.13);
-  color: #ede9fe;
+  border-color: rgba(34, 197, 94, 0.48);
+  background: rgba(34, 197, 94, 0.13);
+  color: #dcfce7;
 }
 
 .status-mini-grid {
@@ -935,16 +1019,17 @@ body::before {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.calendar-btn {
-  width: 38px;
+.calendar-btn,
+.calendar-today-btn {
   height: 38px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.24);
   background: rgba(2, 6, 23, 0.34);
   color: white;
-  font-size: 22px;
   font-weight: 900;
   cursor: pointer;
   transition: 0.22s ease;
@@ -953,7 +1038,39 @@ body::before {
   line-height: 1;
 }
 
-.calendar-btn:hover {
+.calendar-btn {
+  width: 38px;
+  font-size: 22px;
+}
+
+.calendar-today-btn {
+  padding: 0 14px;
+  font-size: 12px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.calendar-date-input {
+  height: 38px;
+  min-width: 154px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(2, 6, 23, 0.34);
+  color: white;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 800;
+  outline: none;
+  color-scheme: dark;
+}
+
+.calendar-date-input:focus {
+  border-color: rgba(0, 200, 255, 0.62);
+  box-shadow: 0 0 18px rgba(0, 200, 255, 0.18);
+}
+
+.calendar-btn:hover,
+.calendar-today-btn:hover {
   transform: translateY(-2px);
   background: rgba(0, 200, 255, 0.20);
   box-shadow: 0 0 22px rgba(0, 200, 255, 0.22);
@@ -1092,17 +1209,17 @@ body::before {
 }
 
 .legend-dot.holiday-open {
-  background: rgba(168, 85, 247, 0.62);
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.22);
+  background: rgba(34, 197, 94, 0.62);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.22);
 }
 
 .legend-note {
   margin-top: 14px;
   padding: 12px;
   border-radius: 14px;
-  background: rgba(168, 85, 247, 0.10);
-  border: 1px solid rgba(168, 85, 247, 0.22);
-  color: #ede9fe;
+  background: rgba(34, 197, 94, 0.10);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  color: #dcfce7;
   font-size: 11px;
   line-height: 1.45;
 }
@@ -1160,14 +1277,23 @@ body::before {
 
 .day.holiday-open {
   background:
-    radial-gradient(circle at top right, rgba(168, 85, 247, 0.28), transparent 55%),
-    rgba(88, 28, 135, 0.46);
-  outline: 1px solid rgba(168, 85, 247, 0.62);
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.26), transparent 55%),
+    rgba(20, 83, 45, 0.42);
+  outline: 1px solid rgba(34, 197, 94, 0.62);
   outline-offset: -1px;
-  box-shadow: inset 0 0 22px rgba(168, 85, 247, 0.10);
+  box-shadow: inset 0 0 22px rgba(34, 197, 94, 0.10);
 }
 
-.day.today.open {
+.day.selected-date {
+  outline: 3px solid rgba(0, 200, 255, 0.98);
+  outline-offset: -3px;
+  box-shadow:
+    inset 0 0 26px rgba(0, 200, 255, 0.22),
+    0 0 26px rgba(0, 200, 255, 0.22);
+}
+
+.day.today.open,
+.day.today.holiday-open {
   background:
     radial-gradient(circle at top right, rgba(34, 197, 94, 0.32), transparent 55%),
     rgba(20, 83, 45, 0.52);
@@ -1200,17 +1326,6 @@ body::before {
     0 0 22px rgba(250, 204, 21, 0.16);
 }
 
-.day.today.holiday-open {
-  background:
-    radial-gradient(circle at top right, rgba(168, 85, 247, 0.42), transparent 55%),
-    rgba(88, 28, 135, 0.66);
-  outline: 2px solid rgba(168, 85, 247, 0.95);
-  outline-offset: -2px;
-  box-shadow:
-    inset 0 0 24px rgba(168, 85, 247, 0.18),
-    0 0 22px rgba(168, 85, 247, 0.18);
-}
-
 .day-number {
   font-size: 18px;
   color: white;
@@ -1237,7 +1352,7 @@ body::before {
 }
 
 .day.holiday-open .day-info {
-  color: #ede9fe;
+  color: #dcfce7;
 }
 
 .day-tag {
@@ -1269,9 +1384,9 @@ body::before {
 }
 
 .day-tag.holiday-open {
-  color: #ede9fe;
-  background: rgba(168, 85, 247, 0.16);
-  border-color: rgba(168, 85, 247, 0.38);
+  color: #dcfce7;
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(34, 197, 94, 0.38);
 }
 
 .footer {
@@ -1326,6 +1441,11 @@ body::before {
     font-size: 20px;
   }
 
+  .clock-card {
+    min-height: 280px;
+    padding: 28px 18px;
+  }
+
   .calendar-header-flex {
     align-items: flex-start;
     flex-direction: column;
@@ -1341,7 +1461,16 @@ body::before {
     height: 38px;
   }
 
-  .clock-card,
+  .calendar-today-btn {
+    height: 38px;
+    padding: 0 12px;
+  }
+
+  .calendar-date-input {
+    width: 100%;
+    min-width: 100%;
+  }
+
   .status-card {
     padding: 20px;
   }
@@ -1352,10 +1481,11 @@ body::before {
   }
 
   .status-orb {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
     border-radius: 20px;
-    font-size: 24px;
+    padding: 11px;
   }
 
   .status-title {
@@ -1459,6 +1589,8 @@ def montar_calendario_html(calendario):
         return ""
 
     nomes_dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+    hoje = datetime.now(TIMEZONE_BRASILIA).date()
+    hoje_iso = hoje.strftime("%Y-%m-%d")
 
     calendario_html = f"""
     <section class="panel calendar-panel">
@@ -1471,6 +1603,8 @@ def montar_calendario_html(calendario):
 
           <div class="calendar-actions">
             <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(-1)" aria-label="Mês anterior">‹</button>
+            <button class="calendar-today-btn" type="button" onclick="voltarHojeCalendarioPeg()">Hoje</button>
+            <input id="dataSelecionadaCalendarioPeg" class="calendar-date-input" type="date" value="{hoje_iso}" onchange="selecionarDataCalendarioPeg(this.value)">
             <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(1)" aria-label="Próximo mês">›</button>
           </div>
         </div>
@@ -1482,8 +1616,6 @@ def montar_calendario_html(calendario):
 
     for nome in nomes_dias:
         calendario_html += f'<div class="day-name">{nome}</div>'
-
-    hoje = datetime.now(TIMEZONE_BRASILIA).date().strftime("%Y-%m-%d")
 
     for semana in calendario["semanas"]:
         for dia in semana:
@@ -1504,7 +1636,7 @@ def montar_calendario_html(calendario):
                 if dia["eh_feriado_com_loja_aberta"]:
                     classes.append("holiday-open")
 
-                if dia["data"] == hoje:
+                if dia["data"] == hoje_iso:
                     classes.append("today")
 
                 classe = " ".join(classes)
@@ -1526,7 +1658,7 @@ def montar_calendario_html(calendario):
                     tag_texto = "Fechado"
 
                 calendario_html += f"""
-                <div class="{classe}">
+                <div class="{classe}" data-dia-calendario="{dia["data"]}">
                   <div class="day-number">{dia["dia"]}</div>
                   <div class="day-info">{dia["dia_semana"]}</div>
                   <div class="day-info">{info}</div>
@@ -1556,33 +1688,34 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
     eh_feriado_com_loja_aberta = dados.get("eh_feriado_com_loja_aberta")
 
     badge_class = ""
-    status_icon = "●"
     status_titulo = "Consulta ativa"
+    status_orb_class = "open"
 
     if eh_feriado_com_loja_aberta:
         badge_class = "holiday-open"
-        status_icon = "◆"
         status_titulo = "Feriado com loja aberta"
+        status_orb_class = "open"
         status_final = status_texto or "Feriado com loja aberta"
     elif nome_feriado:
         badge_class = "holiday"
-        status_icon = "!"
         status_titulo = "Fechado por feriado"
+        status_orb_class = "holiday"
         status_final = f"Fechado: {nome_feriado}"
     elif loja_abre is False or atendimento_aberto is False:
         badge_class = "closed"
-        status_icon = "×"
         status_titulo = "Atendimento fechado"
+        status_orb_class = "closed"
         status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Fechado"
     else:
-        status_icon = "✓"
         status_titulo = "Atendimento aberto"
+        status_orb_class = "open"
         status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Consulta disponível"
 
     calendario_html = montar_calendario_html(calendario)
 
     calendario_ano = calendario["ano"] if calendario else datetime.now(TIMEZONE_BRASILIA).year
     calendario_mes = calendario["mes"] if calendario else datetime.now(TIMEZONE_BRASILIA).month
+    hoje_iso = datetime.now(TIMEZONE_BRASILIA).date().strftime("%Y-%m-%d")
 
     script_tempo_real = ""
 
@@ -1591,6 +1724,7 @@ def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, 
 <script>
 let calendarioPegAno = {calendario_ano};
 let calendarioPegMes = {calendario_mes};
+let calendarioPegDataSelecionada = "{hoje_iso}";
 
 async function atualizarHorarioPeg() {{
   try {{
@@ -1620,17 +1754,17 @@ async function atualizarHorarioPeg() {{
     }}
 
     let statusTitulo = "Atendimento aberto";
-    let statusIcone = "✓";
+    let statusOrbClass = "open";
 
     if (dados.eh_feriado_com_loja_aberta) {{
       statusTitulo = "Feriado com loja aberta";
-      statusIcone = "◆";
+      statusOrbClass = "open";
     }} else if (dados.nome_feriado) {{
       statusTitulo = "Fechado por feriado";
-      statusIcone = "!";
+      statusOrbClass = "holiday";
     }} else if (!dados.atendimento_aberto) {{
       statusTitulo = "Atendimento fechado";
-      statusIcone = "×";
+      statusOrbClass = "closed";
     }}
 
     if (statusTitleEl) {{
@@ -1638,7 +1772,8 @@ async function atualizarHorarioPeg() {{
     }}
 
     if (statusOrbEl) {{
-      statusOrbEl.textContent = statusIcone;
+      statusOrbEl.classList.remove("open", "closed", "holiday", "holiday-open");
+      statusOrbEl.classList.add(statusOrbClass);
     }}
 
     if (statusEl) {{
@@ -1676,6 +1811,14 @@ async function atualizarHorarioPeg() {{
   }} catch (erro) {{
     console.log("Erro ao atualizar horário PEG", erro);
   }}
+}}
+
+function obterDataHojePeg() {{
+  const agora = new Date();
+  const ano = agora.getFullYear();
+  const mes = String(agora.getMonth() + 1).padStart(2, "0");
+  const dia = String(agora.getDate()).padStart(2, "0");
+  return `${{ano}}-${{mes}}-${{dia}}`;
 }}
 
 function montarLegendaCalendarioPeg() {{
@@ -1730,6 +1873,8 @@ function montarHtmlCalendarioPeg(dados) {{
 
           <div class="calendar-actions">
             <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(-1)" aria-label="Mês anterior">‹</button>
+            <button class="calendar-today-btn" type="button" onclick="voltarHojeCalendarioPeg()">Hoje</button>
+            <input id="dataSelecionadaCalendarioPeg" class="calendar-date-input" type="date" value="${{calendarioPegDataSelecionada}}" onchange="selecionarDataCalendarioPeg(this.value)">
             <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(1)" aria-label="Próximo mês">›</button>
           </div>
         </div>
@@ -1770,6 +1915,10 @@ function montarHtmlCalendarioPeg(dados) {{
           classes += " today";
         }}
 
+        if (dia.data === calendarioPegDataSelecionada) {{
+          classes += " selected-date";
+        }}
+
         let info = dia.funcionamento_previsto;
         let tagClasse = "open";
         let tagTexto = "Aberto";
@@ -1788,7 +1937,7 @@ function montarHtmlCalendarioPeg(dados) {{
         }}
 
         html += `
-          <div class="${{classes}}">
+          <div class="${{classes}}" data-dia-calendario="${{dia.data}}">
             <div class="day-number">${{dia.dia}}</div>
             <div class="day-info">${{dia.dia_semana}}</div>
             <div class="day-info">${{info}}</div>
@@ -1842,6 +1991,36 @@ function mudarMesCalendarioPeg(direcao) {{
     calendarioPegMes = 1;
     calendarioPegAno += 1;
   }}
+
+  carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
+}}
+
+function voltarHojeCalendarioPeg() {{
+  const hoje = obterDataHojePeg();
+  calendarioPegDataSelecionada = hoje;
+
+  const partes = hoje.split("-");
+  calendarioPegAno = Number(partes[0]);
+  calendarioPegMes = Number(partes[1]);
+
+  carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
+}}
+
+function selecionarDataCalendarioPeg(valor) {{
+  if (!valor) {{
+    return;
+  }}
+
+  calendarioPegDataSelecionada = valor;
+
+  const partes = valor.split("-");
+
+  if (partes.length !== 3) {{
+    return;
+  }}
+
+  calendarioPegAno = Number(partes[0]);
+  calendarioPegMes = Number(partes[1]);
 
   carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
 }}
@@ -1900,7 +2079,9 @@ setInterval(atualizarCalendarioPeg, 60000);
           <div class="status-card">
             <div class="status-content">
               <div class="status-topline">
-                <div id="statusOrbPeg" class="status-orb">{status_icon}</div>
+                <div id="statusOrbPeg" class="status-orb {status_orb_class}">
+                  <img src="{LOGO_PEG_URL}" alt="PEG do Brasil">
+                </div>
 
                 <div class="status-text-block">
                   <div class="status-overline">Status operacional</div>
