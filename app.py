@@ -2213,9 +2213,23 @@ def index():
 
 @app.route("/api/inicio", methods=["GET", "POST"])
 def api_inicio():
+    """
+    Endpoint principal para o BotConversa.
+
+    Padrão aplicado igual ao catálogo:
+    - aceita GET e POST
+    - aceita corpo JSON mesmo que vazio
+    - retorna ok na raiz
+    - retorna message na raiz
+    - retorna os campos principais diretamente na raiz
+    - mantém items como lista, para o BotConversa reconhecer a estrutura de forma semelhante ao catálogo
+    """
     dados = obter_dados_horario()
 
-    payload = {
+    corpo_recebido = request.get_json(silent=True) or {}
+    consulta = str(corpo_recebido.get("consulta") or request.args.get("consulta") or "inicio").strip()
+
+    item = {
         "empresa": dados.get("empresa"),
         "timezone": dados.get("timezone"),
 
@@ -2257,12 +2271,25 @@ def api_inicio():
         "feriados_com_loja_aberta": dados.get("horario_funcionamento", {}).get("feriados_com_loja_aberta")
     }
 
-    return jsonify({
-        "sucesso": True,
-        "requisicao_recebida": True,
-        "mensagem": "Consulta realizada com sucesso.",
-        "dados": payload
-    })
+    message = (
+        f"{item['data_extenso']} - {item['hora_atual']} - "
+        f"{item['mensagem_atendimento']}"
+    )
+
+    resposta = {
+        "ok": True,
+        "tipo_consulta": consulta,
+        "total_encontrado": 1,
+        "total_retornado": 1,
+        "message": message,
+        "items": [item]
+    }
+
+    # Também entrega os campos na raiz, igual o BotConversa lê bem no endpoint de catálogo.
+    resposta.update(item)
+
+    return jsonify(resposta)
+
 
 @app.route("/api/horario")
 def api_horario():
