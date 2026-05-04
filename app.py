@@ -2211,11 +2211,11 @@ def index():
     )
 
 
-@app.route("/api/inicio")
+@app.route("/api/inicio", methods=["GET", "POST"])
 def api_inicio():
     dados = obter_dados_horario()
 
-    return jsonify({
+    payload = {
         "empresa": dados.get("empresa"),
         "timezone": dados.get("timezone"),
 
@@ -2255,8 +2255,14 @@ def api_inicio():
         "domingo": dados.get("horario_funcionamento", {}).get("domingo"),
         "feriados_fechados": dados.get("horario_funcionamento", {}).get("feriados_fechados"),
         "feriados_com_loja_aberta": dados.get("horario_funcionamento", {}).get("feriados_com_loja_aberta")
-    })
+    }
 
+    return jsonify({
+        "sucesso": True,
+        "requisicao_recebida": True,
+        "mensagem": "Consulta realizada com sucesso.",
+        "dados": payload
+    })
 
 @app.route("/api/horario")
 def api_horario():
