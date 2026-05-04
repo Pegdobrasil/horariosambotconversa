@@ -4,12 +4,18 @@ from zoneinfo import ZoneInfo
 import calendar
 import json
 import os
+import requests
 
 app = Flask(__name__)
 
 TIMEZONE_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 LOGO_PEG_URL = "https://magazord-public.s3.sa-east-1.amazonaws.com/pegdobrasil/img/2025/03/banner/138072/medium/logo-vazia.png"
+
+BOTCONVERSA_WEBHOOK_URL = os.getenv(
+    "BOTCONVERSA_WEBHOOK_URL",
+    "https://h.integrations-hub.com/wh/38/1lfflc2/2iC6BeqklPyOx_e4aiG6k8OIKBXCdc-V9nb60pBbJTk/"
+).strip()
 
 DIAS_SEMANA = {
     0: "segunda-feira",
@@ -464,1770 +470,8 @@ def quer_visual():
     return request.args.get("visual") in ["1", "true", "sim", "html"]
 
 
-CSS_PEG = """
-<style>
-* {
-  box-sizing: border-box;
-}
-
-:root {
-  --peg-blue: #005cff;
-  --peg-cyan: #00c8ff;
-  --peg-dark: #020617;
-  --peg-card: rgba(15, 23, 42, 0.78);
-  --peg-border: rgba(0, 200, 255, 0.22);
-  --peg-text: #e5f4ff;
-  --peg-muted: #94a3b8;
-  --peg-green: #22c55e;
-  --peg-red: #ef4444;
-  --peg-yellow: #facc15;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  padding: 30px 18px;
-  font-family: Arial, Helvetica, sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(0, 200, 255, 0.20), transparent 34%),
-    radial-gradient(circle at top right, rgba(0, 92, 255, 0.22), transparent 32%),
-    linear-gradient(135deg, #020617 0%, #071527 45%, #020617 100%);
-  color: var(--peg-text);
-  overflow-x: hidden;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 85%);
-  pointer-events: none;
-}
-
-.page {
-  width: 100%;
-  max-width: 1540px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 2;
-}
-
-.hero {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--peg-border);
-  border-radius: 30px;
-  padding: 32px;
-  background:
-    linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.72)),
-    radial-gradient(circle at 30% 20%, rgba(0, 200, 255, 0.16), transparent 35%);
-  box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.35),
-    0 0 55px rgba(0, 92, 255, 0.18);
-  backdrop-filter: blur(14px);
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("https://github.com/Pegdobrasil/peg-imagens-site/blob/main/logo%20branca.png?raw=true");
-  background-repeat: no-repeat;
-  background-position: right 42px top 32px;
-  background-size: 260px auto;
-  opacity: 0.06;
-  pointer-events: none;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 2;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 30px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.brand-mark {
-  width: 82px;
-  height: 82px;
-  border-radius: 22px;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(0, 200, 255, 0.24);
-  box-shadow: 0 0 28px rgba(0, 200, 255, 0.25);
-  padding: 11px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: 0.22s ease;
-}
-
-.brand-mark:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 34px rgba(0, 200, 255, 0.34);
-}
-
-.brand-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.brand-title {
-  margin: 0;
-  font-size: 24px;
-  line-height: 1.1;
-  color: white;
-  font-weight: 900;
-}
-
-.brand-subtitle {
-  margin: 5px 0 0;
-  color: var(--peg-muted);
-  font-size: 14px;
-}
-
-.live-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 11px 16px;
-  border-radius: 999px;
-  color: #dff7ff;
-  background: rgba(0, 200, 255, 0.08);
-  border: 1px solid rgba(0, 200, 255, 0.28);
-  font-size: 13px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.live-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--peg-green);
-  box-shadow: 0 0 16px rgba(34, 197, 94, 0.85);
-  animation: pulse 1.4s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  50% {
-    transform: scale(1.35);
-    opacity: 0.65;
-  }
-}
-
-.main-grid {
-  display: grid;
-  grid-template-columns: 1.28fr 0.72fr;
-  gap: 26px;
-  align-items: stretch;
-}
-
-.clock-card,
-.status-card {
-  border-radius: 26px;
-  padding: 32px;
-  background:
-    radial-gradient(circle at top left, rgba(0, 200, 255, 0.18), transparent 36%),
-    rgba(2, 6, 23, 0.58);
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  box-shadow: inset 0 0 35px rgba(0, 200, 255, 0.04);
-}
-
-.clock-card {
-  min-height: 360px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 70px 36px 44px;
-  position: relative;
-}
-
-.clock-card .label {
-  position: absolute;
-  top: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  text-align: center;
-}
-
-.label {
-  color: var(--peg-cyan);
-  text-transform: uppercase;
-  letter-spacing: 1.6px;
-  font-weight: 900;
-  font-size: 12px;
-  margin-bottom: 14px;
-}
-
-.date {
-  font-size: clamp(26px, 2.8vw, 42px);
-  font-weight: 900;
-  color: #ffffff;
-  margin-bottom: 26px;
-  text-transform: capitalize;
-  max-width: 100%;
-}
-
-.clock {
-  font-size: clamp(78px, 8vw, 150px);
-  line-height: 0.9;
-  font-weight: 900;
-  letter-spacing: -4px;
-  color: white;
-  text-align: center;
-  text-shadow:
-    0 0 22px rgba(0, 200, 255, 0.22),
-    0 0 52px rgba(0, 92, 255, 0.18);
-  transition: transform 0.18s ease, text-shadow 0.18s ease;
-}
-
-.clock.tick {
-  transform: scale(1.015);
-  text-shadow:
-    0 0 28px rgba(0, 200, 255, 0.34),
-    0 0 70px rgba(0, 92, 255, 0.28);
-}
-
-.status-card {
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top right, rgba(0, 200, 255, 0.20), transparent 38%),
-    radial-gradient(circle at bottom left, rgba(0, 92, 255, 0.18), transparent 40%),
-    rgba(2, 6, 23, 0.66);
-}
-
-.status-content {
-  position: relative;
-  z-index: 2;
-}
-
-.status-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.status-orb {
-  width: 82px;
-  height: 82px;
-  min-width: 82px;
-  border-radius: 24px;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(0, 200, 255, 0.20);
-  padding: 12px;
-  transition: 0.25s ease;
-}
-
-.status-orb img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.status-orb.open {
-  border-color: rgba(34, 197, 94, 0.48);
-  animation: statusFadeGreen 2.8s ease-in-out infinite;
-}
-
-.status-orb.closed {
-  border-color: rgba(239, 68, 68, 0.52);
-  animation: statusFadeRed 2.8s ease-in-out infinite;
-}
-
-.status-orb.holiday {
-  border-color: rgba(250, 204, 21, 0.52);
-  animation: statusFadeYellow 2.8s ease-in-out infinite;
-}
-
-@keyframes statusFadeGreen {
-  0%, 100% {
-    box-shadow:
-      0 0 16px rgba(34, 197, 94, 0.16),
-      0 0 34px rgba(34, 197, 94, 0.10),
-      inset 0 0 16px rgba(34, 197, 94, 0.05);
-    background: rgba(34, 197, 94, 0.04);
-  }
-
-  50% {
-    box-shadow:
-      0 0 34px rgba(34, 197, 94, 0.55),
-      0 0 74px rgba(34, 197, 94, 0.32),
-      inset 0 0 26px rgba(34, 197, 94, 0.14);
-    background: rgba(34, 197, 94, 0.14);
-  }
-}
-
-@keyframes statusFadeRed {
-  0%, 100% {
-    box-shadow:
-      0 0 16px rgba(239, 68, 68, 0.16),
-      0 0 34px rgba(239, 68, 68, 0.10),
-      inset 0 0 16px rgba(239, 68, 68, 0.05);
-    background: rgba(239, 68, 68, 0.04);
-  }
-
-  50% {
-    box-shadow:
-      0 0 34px rgba(239, 68, 68, 0.58),
-      0 0 74px rgba(239, 68, 68, 0.34),
-      inset 0 0 26px rgba(239, 68, 68, 0.15);
-    background: rgba(239, 68, 68, 0.14);
-  }
-}
-
-@keyframes statusFadeYellow {
-  0%, 100% {
-    box-shadow:
-      0 0 16px rgba(250, 204, 21, 0.16),
-      0 0 34px rgba(250, 204, 21, 0.10),
-      inset 0 0 16px rgba(250, 204, 21, 0.05);
-    background: rgba(250, 204, 21, 0.04);
-  }
-
-  50% {
-    box-shadow:
-      0 0 34px rgba(250, 204, 21, 0.58),
-      0 0 74px rgba(250, 204, 21, 0.34),
-      inset 0 0 26px rgba(250, 204, 21, 0.15);
-    background: rgba(250, 204, 21, 0.14);
-  }
-}
-
-.status-text-block {
-  flex: 1;
-}
-
-.status-overline {
-  color: var(--peg-cyan);
-  font-size: 11px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  font-weight: 900;
-  margin-bottom: 7px;
-}
-
-.status-title {
-  color: white;
-  font-size: 24px;
-  font-weight: 900;
-  line-height: 1.12;
-  margin: 0;
-}
-
-.status-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-  gap: 10px;
-  padding: 14px 18px;
-  border-radius: 18px;
-  font-size: 14px;
-  font-weight: 900;
-  border: 1px solid rgba(0, 200, 255, 0.28);
-  background: rgba(0, 200, 255, 0.08);
-  color: #dff7ff;
-  line-height: 1.4;
-}
-
-.status-badge.closed {
-  border-color: rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.10);
-  color: #fee2e2;
-}
-
-.status-badge.holiday {
-  border-color: rgba(250, 204, 21, 0.42);
-  background: rgba(250, 204, 21, 0.12);
-  color: #fef9c3;
-}
-
-.status-badge.holiday-open {
-  border-color: rgba(34, 197, 94, 0.48);
-  background: rgba(34, 197, 94, 0.13);
-  color: #dcfce7;
-}
-
-.status-mini-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin: 20px 0 18px;
-}
-
-.status-mini-card {
-  padding: 14px;
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(0, 92, 255, 0.12), rgba(0, 200, 255, 0.05));
-  border: 1px solid rgba(0, 200, 255, 0.13);
-}
-
-.status-mini-card span {
-  display: block;
-  color: var(--peg-muted);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  margin-bottom: 7px;
-}
-
-.status-mini-card strong {
-  display: block;
-  color: white;
-  font-size: 15px;
-  line-height: 1.2;
-}
-
-.hours-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.hours-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: #dbeafe;
-  font-size: 14px;
-  padding: 11px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.10);
-  background: rgba(15, 23, 42, 0.36);
-}
-
-.hours-item span:first-child {
-  color: var(--peg-muted);
-}
-
-.hours-item strong {
-  text-align: right;
-}
-
-.side-grid {
-  display: grid;
-  grid-template-columns: 0.72fr 1.28fr;
-  gap: 26px;
-  align-items: start;
-  margin-top: 26px;
-}
-
-.panel {
-  border-radius: 26px;
-  background: rgba(15, 23, 42, 0.74);
-  border: 1px solid rgba(0, 200, 255, 0.14);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.26);
-  overflow: hidden;
-}
-
-.panel-header {
-  padding: 20px 22px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.calendar-panel .panel-header {
-  background:
-    linear-gradient(135deg, rgba(0, 92, 255, 0.92), rgba(0, 200, 255, 0.40));
-}
-
-.calendar-header-flex {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: center;
-}
-
-.calendar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.calendar-btn,
-.calendar-today-btn {
-  height: 38px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(2, 6, 23, 0.34);
-  color: white;
-  font-weight: 900;
-  cursor: pointer;
-  transition: 0.22s ease;
-  display: grid;
-  place-items: center;
-  line-height: 1;
-}
-
-.calendar-btn {
-  width: 38px;
-  font-size: 22px;
-}
-
-.calendar-today-btn {
-  padding: 0 14px;
-  font-size: 12px;
-  letter-spacing: 0.7px;
-  text-transform: uppercase;
-}
-
-.calendar-date-input {
-  height: 38px;
-  min-width: 154px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(2, 6, 23, 0.34);
-  color: white;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 800;
-  outline: none;
-  color-scheme: dark;
-}
-
-.calendar-date-input:focus {
-  border-color: rgba(0, 200, 255, 0.62);
-  box-shadow: 0 0 18px rgba(0, 200, 255, 0.18);
-}
-
-.calendar-btn:hover,
-.calendar-today-btn:hover {
-  transform: translateY(-2px);
-  background: rgba(0, 200, 255, 0.20);
-  box-shadow: 0 0 22px rgba(0, 200, 255, 0.22);
-}
-
-.panel-title {
-  margin: 0;
-  color: white;
-  font-size: 20px;
-  font-weight: 900;
-}
-
-.panel-subtitle {
-  margin: 5px 0 0;
-  color: var(--peg-muted);
-  font-size: 13px;
-}
-
-.calendar-panel .panel-subtitle {
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.panel-body {
-  padding: 20px 22px 22px;
-}
-
-.endpoints-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.endpoint {
-  display: block;
-  color: #e0f2fe;
-  text-decoration: none;
-  background:
-    linear-gradient(135deg, rgba(0, 92, 255, 0.16), rgba(0, 200, 255, 0.06));
-  border: 1px solid rgba(0, 200, 255, 0.16);
-  border-radius: 15px;
-  padding: 14px 15px;
-  font-size: 14px;
-  font-weight: 800;
-  word-break: break-word;
-}
-
-.endpoint:hover {
-  border-color: rgba(0, 200, 255, 0.42);
-  box-shadow: 0 0 24px rgba(0, 200, 255, 0.13);
-}
-
-.json-panel {
-  margin-top: 26px;
-}
-
-.json {
-  margin: 0;
-  padding: 20px 22px 24px;
-  color: #dbeafe;
-  text-align: left;
-  font-size: 13px;
-  line-height: 1.7;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 560px;
-  overflow: auto;
-  background: rgba(2, 6, 23, 0.86);
-}
-
-.calendar-content {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 0;
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  background: rgba(2, 6, 23, 0.50);
-}
-
-.calendar-legend {
-  padding: 18px;
-  background:
-    radial-gradient(circle at top right, rgba(0, 200, 255, 0.10), transparent 48%),
-    rgba(2, 6, 23, 0.62);
-  border-left: 1px solid rgba(148, 163, 184, 0.14);
-}
-
-.legend-title {
-  margin: 0 0 12px;
-  color: white;
-  font-size: 13px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin-bottom: 11px;
-  color: #dbeafe;
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-.legend-dot {
-  width: 13px;
-  height: 13px;
-  min-width: 13px;
-  border-radius: 5px;
-  margin-top: 1px;
-  border: 1px solid rgba(255, 255, 255, 0.20);
-}
-
-.legend-dot.open {
-  background: rgba(0, 200, 255, 0.36);
-  box-shadow: 0 0 12px rgba(0, 200, 255, 0.18);
-}
-
-.legend-dot.closed {
-  background: rgba(239, 68, 68, 0.56);
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.14);
-}
-
-.legend-dot.holiday {
-  background: rgba(250, 204, 21, 0.58);
-  box-shadow: 0 0 12px rgba(250, 204, 21, 0.16);
-}
-
-.legend-dot.today {
-  background: rgba(34, 197, 94, 0.62);
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.22);
-}
-
-.legend-dot.holiday-open {
-  background: rgba(34, 197, 94, 0.62);
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.22);
-}
-
-.legend-note {
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 14px;
-  background: rgba(34, 197, 94, 0.10);
-  border: 1px solid rgba(34, 197, 94, 0.22);
-  color: #dcfce7;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.legend-note-title {
-  font-weight: 900;
-  color: #bbf7d0;
-  margin-bottom: 8px;
-}
-
-.legend-note-list {
-  margin: 0;
-  padding-left: 16px;
-}
-
-.legend-note-list li {
-  margin-bottom: 6px;
-}
-
-.legend-note-list li:last-child {
-  margin-bottom: 0;
-}
-
-.day-name {
-  padding: 13px 6px;
-  text-align: center;
-  color: #bfdbfe;
-  font-size: 12px;
-  font-weight: 900;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(2, 6, 23, 0.40);
-}
-
-.day {
-  min-height: 96px;
-  padding: 10px;
-  border-right: 1px solid rgba(148, 163, 184, 0.10);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.10);
-  background: rgba(15, 23, 42, 0.48);
-  transition: 0.22s ease;
-  position: relative;
-}
-
-.day:hover {
-  background: rgba(0, 92, 255, 0.14);
-  box-shadow: inset 0 0 18px rgba(0, 200, 255, 0.12);
-}
-
-.day.empty {
-  background: rgba(15, 23, 42, 0.20);
-}
-
-.day.open {
-  background:
-    radial-gradient(circle at top right, rgba(0, 200, 255, 0.12), transparent 55%),
-    rgba(15, 23, 42, 0.58);
-}
-
-.day.closed {
-  background:
-    radial-gradient(circle at top right, rgba(239, 68, 68, 0.14), transparent 55%),
-    rgba(127, 29, 29, 0.30);
-  outline: 1px solid rgba(239, 68, 68, 0.38);
-  outline-offset: -1px;
-}
-
-.day.holiday {
-  background:
-    radial-gradient(circle at top right, rgba(250, 204, 21, 0.20), transparent 55%),
-    rgba(113, 63, 18, 0.40);
-  outline: 1px solid rgba(250, 204, 21, 0.55);
-  outline-offset: -1px;
-}
-
-.day.holiday-open {
-  background:
-    radial-gradient(circle at top right, rgba(34, 197, 94, 0.26), transparent 55%),
-    rgba(20, 83, 45, 0.42);
-  outline: 1px solid rgba(34, 197, 94, 0.62);
-  outline-offset: -1px;
-  box-shadow: inset 0 0 22px rgba(34, 197, 94, 0.10);
-}
-
-.day.selected-date {
-  outline: 3px solid rgba(0, 200, 255, 0.98);
-  outline-offset: -3px;
-  box-shadow:
-    inset 0 0 26px rgba(0, 200, 255, 0.22),
-    0 0 26px rgba(0, 200, 255, 0.22);
-}
-
-.day.today.open,
-.day.today.holiday-open {
-  background:
-    radial-gradient(circle at top right, rgba(34, 197, 94, 0.32), transparent 55%),
-    rgba(20, 83, 45, 0.52);
-  outline: 2px solid rgba(34, 197, 94, 0.85);
-  outline-offset: -2px;
-  box-shadow:
-    inset 0 0 24px rgba(34, 197, 94, 0.16),
-    0 0 22px rgba(34, 197, 94, 0.18);
-}
-
-.day.today.closed {
-  background:
-    radial-gradient(circle at top right, rgba(239, 68, 68, 0.30), transparent 55%),
-    rgba(127, 29, 29, 0.55);
-  outline: 2px solid rgba(239, 68, 68, 0.80);
-  outline-offset: -2px;
-  box-shadow:
-    inset 0 0 24px rgba(239, 68, 68, 0.16),
-    0 0 22px rgba(239, 68, 68, 0.16);
-}
-
-.day.today.holiday {
-  background:
-    radial-gradient(circle at top right, rgba(250, 204, 21, 0.36), transparent 55%),
-    rgba(113, 63, 18, 0.62);
-  outline: 2px solid rgba(250, 204, 21, 0.90);
-  outline-offset: -2px;
-  box-shadow:
-    inset 0 0 24px rgba(250, 204, 21, 0.16),
-    0 0 22px rgba(250, 204, 21, 0.16);
-}
-
-.day-number {
-  font-size: 18px;
-  color: white;
-  font-weight: 900;
-}
-
-.day-info {
-  margin-top: 7px;
-  color: var(--peg-muted);
-  font-size: 11px;
-  line-height: 1.25;
-}
-
-.day.open .day-info {
-  color: #bfdbfe;
-}
-
-.day.closed .day-info {
-  color: #fecaca;
-}
-
-.day.holiday .day-info {
-  color: #fef3c7;
-}
-
-.day.holiday-open .day-info {
-  color: #dcfce7;
-}
-
-.day-tag {
-  display: inline-block;
-  margin-top: 7px;
-  padding: 3px 7px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 900;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.day-tag.open {
-  color: #bbf7d0;
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.28);
-}
-
-.day-tag.closed {
-  color: #fecaca;
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.28);
-}
-
-.day-tag.holiday {
-  color: #fef3c7;
-  background: rgba(250, 204, 21, 0.12);
-  border-color: rgba(250, 204, 21, 0.34);
-}
-
-.day-tag.holiday-open {
-  color: #dcfce7;
-  background: rgba(34, 197, 94, 0.16);
-  border-color: rgba(34, 197, 94, 0.38);
-}
-
-.footer {
-  text-align: center;
-  color: var(--peg-muted);
-  margin-top: 26px;
-  font-size: 13px;
-}
-
-@media (max-width: 1200px) {
-  .page {
-    max-width: 1120px;
-  }
-
-  .main-grid,
-  .side-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .calendar-content {
-    grid-template-columns: 1fr;
-  }
-
-  .calendar-legend {
-    border-left: none;
-    border-top: 1px solid rgba(148, 163, 184, 0.14);
-  }
-}
-
-@media (max-width: 620px) {
-  body {
-    padding: 14px;
-  }
-
-  .hero {
-    padding: 18px;
-    border-radius: 22px;
-  }
-
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .brand-mark {
-    width: 64px;
-    height: 64px;
-    border-radius: 18px;
-  }
-
-  .brand-title {
-    font-size: 20px;
-  }
-
-  .clock-card {
-    min-height: 280px;
-    padding: 62px 18px 28px;
-    position: relative;
-  }
-
-  .clock-card .label {
-    top: 24px;
-  }
-
-  .calendar-header-flex {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .calendar-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .calendar-btn {
-    width: 44px;
-    height: 38px;
-  }
-
-  .calendar-today-btn {
-    height: 38px;
-    padding: 0 12px;
-  }
-
-  .calendar-date-input {
-    width: 100%;
-    min-width: 100%;
-  }
-
-  .status-card {
-    padding: 20px;
-  }
-
-  .status-topline {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .status-orb {
-    width: 72px;
-    height: 72px;
-    min-width: 72px;
-    border-radius: 20px;
-    padding: 11px;
-  }
-
-  .status-title {
-    font-size: 20px;
-  }
-
-  .status-mini-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .clock {
-    letter-spacing: -2px;
-  }
-
-  .day {
-    min-height: 58px;
-    padding: 5px;
-  }
-
-  .day-info,
-  .day-tag {
-    display: none;
-  }
-
-  .day-name {
-    font-size: 10px;
-    padding: 9px 3px;
-  }
-
-  .day-number {
-    font-size: 14px;
-  }
-
-  .calendar-legend {
-    display: none;
-  }
-}
-</style>
-"""
-
-
-def endpoint_cards():
-    endpoints = [
-        ("/api/inicio", "Início"),
-        ("/api/horario", "Horário atual"),
-        ("/api/amanha", "Amanhã"),
-        ("/api/depois-de-amanha", "Depois de amanhã"),
-        ("/api/proximo-dia/sexta", "Próxima sexta"),
-        ("/api/proximo-feriado", "Próximo feriado"),
-        ("/api/feriados/2026", "Feriados 2026"),
-        ("/api/calendario", "Calendário atual"),
-        ("/api/data/2026-05-01", "Data específica")
-    ]
-
-    html = ""
-
-    for url, nome in endpoints:
-        html += f'<a class="endpoint" href="{url}?visual=1"><strong>{nome}</strong><br>{url}?visual=1</a>'
-
-    return html
-
-
-def montar_legenda_calendario_html():
-    return """
-    <aside class="calendar-legend">
-      <h3 class="legend-title">Legenda</h3>
-
-      <div class="legend-item">
-        <span class="legend-dot open"></span>
-        <span>Loja aberta conforme horário de atendimento</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot today"></span>
-        <span>Data de hoje com loja aberta</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot closed"></span>
-        <span>Loja fechada por domingo ou fora do expediente cadastrado</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot holiday"></span>
-        <span>Loja fechada por feriado cadastrado</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot holiday-open"></span>
-        <span>Feriado em que a loja não fecha</span>
-      </div>
-
-      <div class="legend-note">
-        <div class="legend-note-title">A loja não fecha em:</div>
-        <ul class="legend-note-list">
-          <li>Nossa Senhora da Luz dos Pinhais</li>
-          <li>Nossa Senhora Aparecida</li>
-          <li>Dia Nacional de Zumbi e da Consciência Negra</li>
-        </ul>
-      </div>
-    </aside>
-    """
-
-
-def montar_calendario_html(calendario):
-    if not calendario:
-        return ""
-
-    nomes_dias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
-    hoje = datetime.now(TIMEZONE_BRASILIA).date()
-    hoje_iso = hoje.strftime("%Y-%m-%d")
-
-    calendario_html = f"""
-    <section class="panel calendar-panel">
-      <div class="panel-header">
-        <div class="calendar-header-flex">
-          <div>
-            <h2 id="tituloCalendarioPeg" class="panel-title">Calendário de {calendario["mes_nome"]} de {calendario["ano"]}</h2>
-            <p class="panel-subtitle">Dias de atendimento, feriados fechados e feriados com loja aberta</p>
-          </div>
-
-          <div class="calendar-actions">
-            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(-1)" aria-label="Mês anterior">‹</button>
-            <button class="calendar-today-btn" type="button" onclick="voltarHojeCalendarioPeg()">Hoje</button>
-            <input id="dataSelecionadaCalendarioPeg" class="calendar-date-input" type="date" value="{hoje_iso}" onchange="selecionarDataCalendarioPeg(this.value)">
-            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(1)" aria-label="Próximo mês">›</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="calendar-content">
-        <div class="calendar-grid">
-    """
-
-    for nome in nomes_dias:
-        calendario_html += f'<div class="day-name">{nome}</div>'
-
-    for semana in calendario["semanas"]:
-        for dia in semana:
-            if dia is None:
-                calendario_html += '<div class="day empty"></div>'
-            else:
-                classes = ["day"]
-
-                if dia["loja_abre"] is True:
-                    classes.append("open")
-
-                if dia["loja_abre"] is False:
-                    classes.append("closed")
-
-                if dia["nome_feriado"]:
-                    classes.append("holiday")
-
-                if dia["eh_feriado_com_loja_aberta"]:
-                    classes.append("holiday-open")
-
-                if dia["data"] == hoje_iso:
-                    classes.append("today")
-
-                classe = " ".join(classes)
-
-                info = dia["funcionamento_previsto"]
-                tag_classe = "open"
-                tag_texto = "Aberto"
-
-                if dia["eh_feriado_com_loja_aberta"]:
-                    info = dia["nome_feriado_aberto"]
-                    tag_classe = "holiday-open"
-                    tag_texto = "Aberto"
-                elif dia["nome_feriado"]:
-                    info = dia["nome_feriado"]
-                    tag_classe = "holiday"
-                    tag_texto = "Feriado"
-                elif dia["loja_abre"] is False:
-                    tag_classe = "closed"
-                    tag_texto = "Fechado"
-
-                calendario_html += f"""
-                <div class="{classe}" data-dia-calendario="{dia["data"]}">
-                  <div class="day-number">{dia["dia"]}</div>
-                  <div class="day-info">{dia["dia_semana"]}</div>
-                  <div class="day-info">{info}</div>
-                  <div class="day-tag {tag_classe}">{tag_texto}</div>
-                </div>
-                """
-
-    calendario_html += f"""
-        </div>
-        {montar_legenda_calendario_html()}
-      </div>
-    </section>
-    """
-
-    return calendario_html
-
-
-def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, tempo_real=False):
-    json_formatado = json.dumps(dados, ensure_ascii=False, indent=2)
-
-    data_extenso = dados.get("data_extenso") or dados.get("hoje", {}).get("data_extenso") or "Consulta PEG"
-    hora_atual = dados.get("hora_atual") or dados.get("hoje", {}).get("hora_atual") or "--:--:--"
-
-    loja_abre = dados.get("loja_abre")
-    atendimento_aberto = dados.get("atendimento_aberto")
-    nome_feriado = dados.get("nome_feriado")
-    eh_feriado_com_loja_aberta = dados.get("eh_feriado_com_loja_aberta")
-
-    badge_class = ""
-    status_titulo = "Consulta ativa"
-    status_orb_class = "open"
-
-    if eh_feriado_com_loja_aberta:
-        badge_class = "holiday-open"
-        status_titulo = "Feriado com loja aberta"
-        status_orb_class = "open"
-        status_final = status_texto or "Feriado com loja aberta"
-    elif nome_feriado:
-        badge_class = "holiday"
-        status_titulo = "Fechado por feriado"
-        status_orb_class = "holiday"
-        status_final = f"Fechado: {nome_feriado}"
-    elif loja_abre is False or atendimento_aberto is False:
-        badge_class = "closed"
-        status_titulo = "Atendimento fechado"
-        status_orb_class = "closed"
-        status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Fechado"
-    else:
-        status_titulo = "Atendimento aberto"
-        status_orb_class = "open"
-        status_final = status_texto or dados.get("mensagem_atendimento") or dados.get("mensagem_resposta") or "Consulta disponível"
-
-    calendario_html = montar_calendario_html(calendario)
-
-    calendario_ano = calendario["ano"] if calendario else datetime.now(TIMEZONE_BRASILIA).year
-    calendario_mes = calendario["mes"] if calendario else datetime.now(TIMEZONE_BRASILIA).month
-    hoje_iso = datetime.now(TIMEZONE_BRASILIA).date().strftime("%Y-%m-%d")
-
-    script_tempo_real = ""
-
-    if tempo_real:
-        script_tempo_real = f"""
-<script>
-let calendarioPegAno = {calendario_ano};
-let calendarioPegMes = {calendario_mes};
-let calendarioPegDataSelecionada = "{hoje_iso}";
-
-async function atualizarHorarioPeg() {{
-  try {{
-    const resposta = await fetch("/api/horario", {{ cache: "no-store" }});
-    const dados = await resposta.json();
-
-    const dataEl = document.getElementById("dataAtualPeg");
-    const horaEl = document.getElementById("horaAtualPeg");
-    const statusEl = document.getElementById("statusAtualPeg");
-    const statusTitleEl = document.getElementById("statusTituloPeg");
-    const statusOrbEl = document.getElementById("statusOrbPeg");
-    const miniDataEl = document.getElementById("statusMiniDataPeg");
-    const miniDiaEl = document.getElementById("statusMiniDiaPeg");
-    const miniHorarioEl = document.getElementById("statusMiniHorarioPeg");
-    const miniSituacaoEl = document.getElementById("statusMiniSituacaoPeg");
-    const jsonEl = document.getElementById("jsonAtualPeg");
-
-    if (dataEl) {{
-      dataEl.textContent = dados.data_extenso;
-    }}
-
-    if (horaEl) {{
-      horaEl.textContent = dados.hora_atual;
-      horaEl.classList.remove("tick");
-      void horaEl.offsetWidth;
-      horaEl.classList.add("tick");
-    }}
-
-    let statusTitulo = "Atendimento aberto";
-    let statusOrbClass = "open";
-
-    if (dados.eh_feriado_com_loja_aberta) {{
-      statusTitulo = "Feriado com loja aberta";
-      statusOrbClass = "open";
-    }} else if (dados.nome_feriado) {{
-      statusTitulo = "Fechado por feriado";
-      statusOrbClass = "holiday";
-    }} else if (!dados.atendimento_aberto) {{
-      statusTitulo = "Atendimento fechado";
-      statusOrbClass = "closed";
-    }}
-
-    if (statusTitleEl) {{
-      statusTitleEl.textContent = statusTitulo;
-    }}
-
-    if (statusOrbEl) {{
-      statusOrbEl.classList.remove("open", "closed", "holiday", "holiday-open");
-      statusOrbEl.classList.add(statusOrbClass);
-    }}
-
-    if (statusEl) {{
-      statusEl.textContent = dados.mensagem_atendimento;
-      statusEl.classList.remove("closed", "holiday", "holiday-open");
-
-      if (dados.eh_feriado_com_loja_aberta) {{
-        statusEl.classList.add("holiday-open");
-      }} else if (dados.nome_feriado) {{
-        statusEl.classList.add("holiday");
-      }} else if (!dados.atendimento_aberto) {{
-        statusEl.classList.add("closed");
-      }}
-    }}
-
-    if (miniDataEl) {{
-      miniDataEl.textContent = dados.data_br;
-    }}
-
-    if (miniDiaEl) {{
-      miniDiaEl.textContent = dados.dia_semana;
-    }}
-
-    if (miniHorarioEl) {{
-      miniHorarioEl.textContent = dados.funcionamento_previsto_hoje || "Fechado";
-    }}
-
-    if (miniSituacaoEl) {{
-      miniSituacaoEl.textContent = dados.status_atendimento;
-    }}
-
-    if (jsonEl) {{
-      jsonEl.textContent = JSON.stringify(dados, null, 2);
-    }}
-  }} catch (erro) {{
-    console.log("Erro ao atualizar horário PEG", erro);
-  }}
-}}
-
-function obterDataHojePeg() {{
-  const agora = new Date();
-  const ano = agora.getFullYear();
-  const mes = String(agora.getMonth() + 1).padStart(2, "0");
-  const dia = String(agora.getDate()).padStart(2, "0");
-  return `${{ano}}-${{mes}}-${{dia}}`;
-}}
-
-function montarLegendaCalendarioPeg() {{
-  return `
-    <aside class="calendar-legend">
-      <h3 class="legend-title">Legenda</h3>
-
-      <div class="legend-item">
-        <span class="legend-dot open"></span>
-        <span>Loja aberta conforme horário de atendimento</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot today"></span>
-        <span>Data de hoje com loja aberta</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot closed"></span>
-        <span>Loja fechada por domingo ou fora do expediente cadastrado</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot holiday"></span>
-        <span>Loja fechada por feriado cadastrado</span>
-      </div>
-
-      <div class="legend-item">
-        <span class="legend-dot holiday-open"></span>
-        <span>Feriado em que a loja não fecha</span>
-      </div>
-
-      <div class="legend-note">
-        <div class="legend-note-title">A loja não fecha em:</div>
-        <ul class="legend-note-list">
-          <li>Nossa Senhora da Luz dos Pinhais</li>
-          <li>Nossa Senhora Aparecida</li>
-          <li>Dia Nacional de Zumbi e da Consciência Negra</li>
-        </ul>
-      </div>
-    </aside>
-  `;
-}}
-
-function montarHtmlCalendarioPeg(dados) {{
-  const nomesDias = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-  const hoje = dados.hoje.data_atual;
-
-  let html = `
-    <section class="panel calendar-panel">
-      <div class="panel-header">
-        <div class="calendar-header-flex">
-          <div>
-            <h2 id="tituloCalendarioPeg" class="panel-title">Calendário de ${{dados.mes_nome}} de ${{dados.ano}}</h2>
-            <p class="panel-subtitle">Dias de atendimento, feriados fechados e feriados com loja aberta</p>
-          </div>
-
-          <div class="calendar-actions">
-            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(-1)" aria-label="Mês anterior">‹</button>
-            <button class="calendar-today-btn" type="button" onclick="voltarHojeCalendarioPeg()">Hoje</button>
-            <input id="dataSelecionadaCalendarioPeg" class="calendar-date-input" type="date" value="${{calendarioPegDataSelecionada}}" onchange="selecionarDataCalendarioPeg(this.value)">
-            <button class="calendar-btn" type="button" onclick="mudarMesCalendarioPeg(1)" aria-label="Próximo mês">›</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="calendar-content">
-        <div class="calendar-grid">
-  `;
-
-  nomesDias.forEach(nome => {{
-    html += `<div class="day-name">${{nome}}</div>`;
-  }});
-
-  dados.semanas.forEach(semana => {{
-    semana.forEach(dia => {{
-      if (!dia) {{
-        html += `<div class="day empty"></div>`;
-      }} else {{
-        let classes = "day";
-
-        if (dia.loja_abre === true) {{
-          classes += " open";
-        }}
-
-        if (dia.loja_abre === false) {{
-          classes += " closed";
-        }}
-
-        if (dia.nome_feriado) {{
-          classes += " holiday";
-        }}
-
-        if (dia.eh_feriado_com_loja_aberta) {{
-          classes += " holiday-open";
-        }}
-
-        if (dia.data === hoje) {{
-          classes += " today";
-        }}
-
-        if (dia.data === calendarioPegDataSelecionada) {{
-          classes += " selected-date";
-        }}
-
-        let info = dia.funcionamento_previsto;
-        let tagClasse = "open";
-        let tagTexto = "Aberto";
-
-        if (dia.eh_feriado_com_loja_aberta) {{
-          info = dia.nome_feriado_aberto;
-          tagClasse = "holiday-open";
-          tagTexto = "Aberto";
-        }} else if (dia.nome_feriado) {{
-          info = dia.nome_feriado;
-          tagClasse = "holiday";
-          tagTexto = "Feriado";
-        }} else if (dia.loja_abre === false) {{
-          tagClasse = "closed";
-          tagTexto = "Fechado";
-        }}
-
-        html += `
-          <div class="${{classes}}" data-dia-calendario="${{dia.data}}">
-            <div class="day-number">${{dia.dia}}</div>
-            <div class="day-info">${{dia.dia_semana}}</div>
-            <div class="day-info">${{info}}</div>
-            <div class="day-tag ${{tagClasse}}">${{tagTexto}}</div>
-          </div>
-        `;
-      }}
-    }});
-  }});
-
-  html += `
-        </div>
-        ${{montarLegendaCalendarioPeg()}}
-      </div>
-    </section>
-  `;
-
-  return html;
-}}
-
-async function carregarCalendarioPeg(ano, mes) {{
-  try {{
-    const resposta = await fetch(`/api/calendario/${{ano}}/${{mes}}`, {{ cache: "no-store" }});
-    const dados = await resposta.json();
-
-    const painel = document.getElementById("calendarioAtualPeg");
-
-    if (!painel) {{
-      return;
-    }}
-
-    calendarioPegAno = dados.ano;
-    calendarioPegMes = dados.mes;
-
-    painel.innerHTML = montarHtmlCalendarioPeg(dados);
-
-  }} catch (erro) {{
-    console.log("Erro ao carregar calendário PEG", erro);
-  }}
-}}
-
-function mudarMesCalendarioPeg(direcao) {{
-  calendarioPegMes += direcao;
-
-  if (calendarioPegMes < 1) {{
-    calendarioPegMes = 12;
-    calendarioPegAno -= 1;
-  }}
-
-  if (calendarioPegMes > 12) {{
-    calendarioPegMes = 1;
-    calendarioPegAno += 1;
-  }}
-
-  carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
-}}
-
-function voltarHojeCalendarioPeg() {{
-  const hoje = obterDataHojePeg();
-  calendarioPegDataSelecionada = hoje;
-
-  const partes = hoje.split("-");
-  calendarioPegAno = Number(partes[0]);
-  calendarioPegMes = Number(partes[1]);
-
-  carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
-}}
-
-function selecionarDataCalendarioPeg(valor) {{
-  if (!valor) {{
-    return;
-  }}
-
-  calendarioPegDataSelecionada = valor;
-
-  const partes = valor.split("-");
-
-  if (partes.length !== 3) {{
-    return;
-  }}
-
-  calendarioPegAno = Number(partes[0]);
-  calendarioPegMes = Number(partes[1]);
-
-  carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
-}}
-
-async function atualizarCalendarioPeg() {{
-  await carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
-}}
-
-atualizarHorarioPeg();
-carregarCalendarioPeg(calendarioPegAno, calendarioPegMes);
-
-setInterval(atualizarHorarioPeg, 1000);
-setInterval(atualizarCalendarioPeg, 60000);
-</script>
-"""
-
-    html = f"""
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{titulo} - PEG do Brasil</title>
-  {CSS_PEG}
-</head>
-<body>
-  <div class="page">
-
-    <section class="hero">
-      <div class="hero-content">
-
-        <div class="topbar">
-          <div class="brand">
-            <a class="brand-mark" href="/" title="Voltar para a página inicial" aria-label="Voltar para a página inicial">
-              <img class="brand-logo" src="{LOGO_PEG_URL}" alt="PEG do Brasil">
-            </a>
-            <div>
-              <h1 class="brand-title">{titulo}</h1>
-              <p class="brand-subtitle">{subtitulo}</p>
-            </div>
-          </div>
-
-          <div class="live-pill">
-            <span class="live-dot"></span>
-            API PEG ativa
-          </div>
-        </div>
-
-        <div class="main-grid">
-          <div class="clock-card">
-            <div class="label">Consulta</div>
-            <div id="dataAtualPeg" class="date">{data_extenso.capitalize()}</div>
-            <div id="horaAtualPeg" class="clock">{hora_atual}</div>
-          </div>
-
-          <div class="status-card">
-            <div class="status-content">
-              <div class="status-topline">
-                <div id="statusOrbPeg" class="status-orb {status_orb_class}">
-                  <img src="{LOGO_PEG_URL}" alt="PEG do Brasil">
-                </div>
-
-                <div class="status-text-block">
-                  <div class="status-overline">Status operacional</div>
-                  <h2 id="statusTituloPeg" class="status-title">{status_titulo}</h2>
-                </div>
-              </div>
-
-              <div id="statusAtualPeg" class="status-badge {badge_class}">
-                {status_final}
-              </div>
-
-              <div class="status-mini-grid">
-                <div class="status-mini-card">
-                  <span>Data</span>
-                  <strong id="statusMiniDataPeg">{dados.get("data_br", "-")}</strong>
-                </div>
-
-                <div class="status-mini-card">
-                  <span>Dia</span>
-                  <strong id="statusMiniDiaPeg">{dados.get("dia_semana", "-")}</strong>
-                </div>
-
-                <div class="status-mini-card">
-                  <span>Funcionamento</span>
-                  <strong id="statusMiniHorarioPeg">{dados.get("funcionamento_previsto_hoje", dados.get("funcionamento_previsto", "Fechado"))}</strong>
-                </div>
-
-                <div class="status-mini-card">
-                  <span>Situação</span>
-                  <strong id="statusMiniSituacaoPeg">{dados.get("status_atendimento", "consulta")}</strong>
-                </div>
-              </div>
-
-              <div class="hours-list">
-                <div class="hours-item">
-                  <span>Segunda a sexta</span>
-                  <strong>09:00 às 18:00</strong>
-                </div>
-
-                <div class="hours-item">
-                  <span>Sábado</span>
-                  <strong>09:00 às 13:00</strong>
-                </div>
-
-                <div class="hours-item">
-                  <span>Domingo</span>
-                  <strong>Fechado</strong>
-                </div>
-
-                <div class="hours-item">
-                  <span>Feriados fechados</span>
-                  <strong>Fechado</strong>
-                </div>
-
-                <div class="hours-item">
-                  <span>Feriados com loja aberta</span>
-                  <strong>Funcionamento normal</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <section class="side-grid">
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h2 class="panel-title">Endpoints visuais</h2>
-            <p class="panel-subtitle">Use sem ?visual=1 para retorno JSON no BotConversa</p>
-          </div>
-        </div>
-        <div class="panel-body">
-          <div class="endpoints-grid">
-            {endpoint_cards()}
-          </div>
-        </div>
-      </section>
-
-      <div id="calendarioAtualPeg">
-        {calendario_html}
-      </div>
-    </section>
-
-    <section class="panel json-panel">
-      <div class="panel-header">
-        <div>
-          <h2 class="panel-title">Resposta JSON</h2>
-          <p class="panel-subtitle">Dados retornados pela API</p>
-        </div>
-      </div>
-      <pre id="jsonAtualPeg" class="json">{json_formatado}</pre>
-    </section>
-
-    <div class="footer">
-      PEG do Brasil - Sistema de data, hora, calendário e feriados para atendimento automatizado
-    </div>
-
-  </div>
-
-  {script_tempo_real}
-</body>
-</html>
-"""
-
-    return Response(html, mimetype="text/html")
-
-
-def responder(dados, titulo, subtitulo, status_texto=None, calendario=None, tempo_real=False):
-    if quer_visual():
-        return render_visual(titulo, subtitulo, dados, status_texto, calendario, tempo_real)
-    return jsonify(dados)
-
-
-@app.route("/")
-def index():
+def montar_item_inicio_botconversa():
     dados = obter_dados_horario()
-    agora = datetime.now(TIMEZONE_BRASILIA)
-    calendario_mes = gerar_calendario_mes(agora.year, agora.month)
-
-    return render_visual(
-        "Horário e Calendário PEG",
-        "Base de consulta para a Sam - BotConversa",
-        dados,
-        dados.get("mensagem_atendimento"),
-        calendario_mes,
-        tempo_real=True
-    )
-
-
-@app.route("/api/inicio", methods=["GET", "POST"])
-def api_inicio():
-    """
-    Endpoint principal para o BotConversa.
-
-    Padrão aplicado igual ao catálogo:
-    - aceita GET e POST
-    - aceita corpo JSON mesmo que vazio
-    - retorna ok na raiz
-    - retorna message na raiz
-    - retorna os campos principais diretamente na raiz
-    - mantém items como lista, para o BotConversa reconhecer a estrutura de forma semelhante ao catálogo
-    """
-    dados = obter_dados_horario()
-
-    corpo_recebido = request.get_json(silent=True) or {}
-    consulta = str(corpo_recebido.get("consulta") or request.args.get("consulta") or "inicio").strip()
 
     item = {
         "empresa": dados.get("empresa"),
@@ -2271,6 +515,12 @@ def api_inicio():
         "feriados_com_loja_aberta": dados.get("horario_funcionamento", {}).get("feriados_com_loja_aberta")
     }
 
+    return item
+
+
+def montar_payload_inicio_botconversa(tipo_consulta="inicio"):
+    item = montar_item_inicio_botconversa()
+
     message = (
         f"{item['data_extenso']} - {item['hora_atual']} - "
         f"{item['mensagem_atendimento']}"
@@ -2278,20 +528,430 @@ def api_inicio():
 
     resposta = {
         "ok": True,
-        "tipo_consulta": consulta,
+        "tipo_consulta": tipo_consulta,
         "total_encontrado": 1,
         "total_retornado": 1,
         "message": message,
         "items": [item]
     }
 
-    # Também entrega os campos na raiz, igual o BotConversa lê bem no endpoint de catálogo.
     resposta.update(item)
 
-    return jsonify(resposta)
+    return resposta
 
 
-@app.route("/api/horario")
+def responder(dados, titulo, subtitulo, status_texto=None, calendario=None, tempo_real=False):
+    if quer_visual():
+        return render_visual(titulo, subtitulo, dados, status_texto, calendario, tempo_real)
+    return jsonify(dados)
+
+
+CSS_PEG = """
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #e5f4ff;
+  background:
+    radial-gradient(circle at top left, rgba(0, 200, 255, 0.20), transparent 34%),
+    radial-gradient(circle at top right, rgba(0, 92, 255, 0.22), transparent 32%),
+    linear-gradient(135deg, #020617 0%, #071527 45%, #020617 100%);
+}
+
+.page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.hero {
+  border: 1px solid rgba(0, 200, 255, 0.22);
+  border-radius: 26px;
+  padding: 28px;
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.72)),
+    radial-gradient(circle at 30% 20%, rgba(0, 200, 255, 0.16), transparent 35%);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.logo {
+  width: 74px;
+  height: 74px;
+  border-radius: 20px;
+  object-fit: contain;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 200, 255, 0.24);
+}
+
+h1 {
+  margin: 0;
+  font-size: 26px;
+  color: #ffffff;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 20px;
+}
+
+.card {
+  border-radius: 22px;
+  padding: 26px;
+  background: rgba(2, 6, 23, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.label {
+  color: #00c8ff;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.date {
+  font-size: 30px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 16px;
+  text-transform: capitalize;
+}
+
+.clock {
+  font-size: 92px;
+  line-height: 1;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow:
+    0 0 22px rgba(0, 200, 255, 0.22),
+    0 0 52px rgba(0, 92, 255, 0.18);
+}
+
+.status {
+  padding: 16px;
+  border-radius: 18px;
+  font-weight: 900;
+  line-height: 1.45;
+  background: rgba(0, 200, 255, 0.08);
+  border: 1px solid rgba(0, 200, 255, 0.28);
+}
+
+.status.closed {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fee2e2;
+}
+
+.status.open {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #dcfce7;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.info {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid rgba(0, 200, 255, 0.13);
+}
+
+.info span {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.info strong {
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.endpoints {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.endpoint {
+  display: block;
+  color: #e0f2fe;
+  text-decoration: none;
+  background: linear-gradient(135deg, rgba(0, 92, 255, 0.16), rgba(0, 200, 255, 0.06));
+  border: 1px solid rgba(0, 200, 255, 0.16);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.json {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.86);
+  color: #dbeafe;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 520px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clock {
+    font-size: 64px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+"""
+
+
+def render_visual(titulo, subtitulo, dados, status_texto=None, calendario=None, tempo_real=False):
+    json_formatado = json.dumps(dados, ensure_ascii=False, indent=2)
+
+    data_extenso = dados.get("data_extenso") or dados.get("hoje", {}).get("data_extenso") or "Consulta PEG"
+    hora_atual = dados.get("hora_atual") or dados.get("hoje", {}).get("hora_atual") or "--:--:--"
+
+    atendimento_aberto = dados.get("atendimento_aberto")
+    loja_abre = dados.get("loja_abre")
+    nome_feriado = dados.get("nome_feriado")
+
+    if atendimento_aberto is True:
+        status_classe = "open"
+    elif loja_abre is True and not nome_feriado:
+        status_classe = "open"
+    else:
+        status_classe = "closed"
+
+    status_final = (
+        status_texto
+        or dados.get("mensagem_atendimento")
+        or dados.get("mensagem_resposta")
+        or "Consulta disponível"
+    )
+
+    script_tempo_real = ""
+
+    if tempo_real:
+        script_tempo_real = """
+<script>
+async function atualizarHorarioPeg() {
+  try {
+    const resposta = await fetch("/api/horario", { cache: "no-store" });
+    const dados = await resposta.json();
+
+    const dataEl = document.getElementById("dataAtualPeg");
+    const horaEl = document.getElementById("horaAtualPeg");
+    const statusEl = document.getElementById("statusAtualPeg");
+    const jsonEl = document.getElementById("jsonAtualPeg");
+
+    if (dataEl) dataEl.textContent = dados.data_extenso;
+    if (horaEl) horaEl.textContent = dados.hora_atual;
+    if (statusEl) {
+      statusEl.textContent = dados.mensagem_atendimento;
+      statusEl.classList.remove("open", "closed");
+      statusEl.classList.add(dados.atendimento_aberto ? "open" : "closed");
+    }
+    if (jsonEl) jsonEl.textContent = JSON.stringify(dados, null, 2);
+  } catch (erro) {
+    console.log("Erro ao atualizar horário PEG", erro);
+  }
+}
+
+atualizarHorarioPeg();
+setInterval(atualizarHorarioPeg, 1000);
+</script>
+"""
+
+    html = f"""
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{titulo} - PEG do Brasil</title>
+  {CSS_PEG}
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="topbar">
+        <a href="/">
+          <img class="logo" src="{LOGO_PEG_URL}" alt="PEG do Brasil">
+        </a>
+        <div>
+          <h1>{titulo}</h1>
+          <p class="subtitle">{subtitulo}</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="label">Data e hora de Brasília</div>
+          <div id="dataAtualPeg" class="date">{data_extenso}</div>
+          <div id="horaAtualPeg" class="clock">{hora_atual}</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Status operacional</div>
+          <div id="statusAtualPeg" class="status {status_classe}">{status_final}</div>
+
+          <div class="info-grid">
+            <div class="info">
+              <span>Data</span>
+              <strong>{dados.get("data_br", "-")}</strong>
+            </div>
+            <div class="info">
+              <span>Dia</span>
+              <strong>{dados.get("dia_semana", "-")}</strong>
+            </div>
+            <div class="info">
+              <span>Horário</span>
+              <strong>{dados.get("funcionamento_previsto_hoje", dados.get("funcionamento_previsto", "-"))}</strong>
+            </div>
+            <div class="info">
+              <span>Situação</span>
+              <strong>{dados.get("status_atendimento", "-")}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px;">
+        <div class="label">Endpoints</div>
+        <div class="endpoints">
+          <a class="endpoint" href="/api/inicio?visual=1">/api/inicio?visual=1</a>
+          <a class="endpoint" href="/api/horario?visual=1">/api/horario?visual=1</a>
+          <a class="endpoint" href="/api/amanha?visual=1">/api/amanha?visual=1</a>
+          <a class="endpoint" href="/api/depois-de-amanha?visual=1">/api/depois-de-amanha?visual=1</a>
+          <a class="endpoint" href="/api/proximo-dia/sexta?visual=1">/api/proximo-dia/sexta?visual=1</a>
+          <a class="endpoint" href="/api/proximo-feriado?visual=1">/api/proximo-feriado?visual=1</a>
+          <a class="endpoint" href="/api/feriados/2026?visual=1">/api/feriados/2026?visual=1</a>
+          <a class="endpoint" href="/api/calendario?visual=1">/api/calendario?visual=1</a>
+          <a class="endpoint" href="/api/botconversa/enviar-inicio">/api/botconversa/enviar-inicio</a>
+        </div>
+      </div>
+
+      <pre id="jsonAtualPeg" class="json">{json_formatado}</pre>
+    </section>
+  </div>
+
+  {script_tempo_real}
+</body>
+</html>
+"""
+
+    return Response(html, mimetype="text/html")
+
+
+@app.route("/")
+def index():
+    dados = obter_dados_horario()
+    agora = datetime.now(TIMEZONE_BRASILIA)
+    calendario_mes = gerar_calendario_mes(agora.year, agora.month)
+
+    return render_visual(
+        "Horário e Calendário PEG",
+        "Base de consulta para a Sam - BotConversa",
+        dados,
+        dados.get("mensagem_atendimento"),
+        calendario_mes,
+        tempo_real=True
+    )
+
+
+@app.route("/api/inicio", methods=["GET", "POST"])
+def api_inicio():
+    corpo_recebido = request.get_json(silent=True) or {}
+    consulta = str(corpo_recebido.get("consulta") or request.args.get("consulta") or "inicio").strip()
+
+    return jsonify(montar_payload_inicio_botconversa(consulta))
+
+
+@app.route("/api/botconversa/enviar-inicio", methods=["GET", "POST"])
+def enviar_inicio_para_botconversa():
+    webhook_url = BOTCONVERSA_WEBHOOK_URL
+
+    if not webhook_url:
+        return jsonify({
+            "ok": False,
+            "message": "BOTCONVERSA_WEBHOOK_URL não configurada."
+        }), 500
+
+    corpo_recebido = request.get_json(silent=True) or {}
+    consulta = str(corpo_recebido.get("consulta") or request.args.get("consulta") or "inicio").strip()
+    payload = montar_payload_inicio_botconversa(consulta)
+
+    try:
+        resposta = requests.post(
+            webhook_url,
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            timeout=30
+        )
+
+        return jsonify({
+            "ok": True,
+            "message": "Webhook enviado para o BotConversa.",
+            "status_code_botconversa": resposta.status_code,
+            "resposta_botconversa": resposta.text,
+            "payload_enviado": payload
+        })
+
+    except Exception as erro:
+        return jsonify({
+            "ok": False,
+            "message": "Erro ao enviar webhook para o BotConversa.",
+            "erro": str(erro),
+            "payload_tentado": payload
+        }), 500
+
+
+@app.route("/api/horario", methods=["GET", "POST"])
 def api_horario():
     dados = obter_dados_horario()
     agora = datetime.now(TIMEZONE_BRASILIA)
@@ -2307,7 +967,7 @@ def api_horario():
     )
 
 
-@app.route("/api/amanha")
+@app.route("/api/amanha", methods=["GET", "POST"])
 def api_amanha():
     hoje = datetime.now(TIMEZONE_BRASILIA).date()
     amanha = hoje + timedelta(days=1)
@@ -2323,7 +983,7 @@ def api_amanha():
     )
 
 
-@app.route("/api/depois-de-amanha")
+@app.route("/api/depois-de-amanha", methods=["GET", "POST"])
 def api_depois_de_amanha():
     hoje = datetime.now(TIMEZONE_BRASILIA).date()
     depois = hoje + timedelta(days=2)
@@ -2339,7 +999,7 @@ def api_depois_de_amanha():
     )
 
 
-@app.route("/api/proximo-dia/<string:dia_nome>")
+@app.route("/api/proximo-dia/<string:dia_nome>", methods=["GET", "POST"])
 def api_proximo_dia(dia_nome):
     chave = dia_nome.lower().strip()
 
@@ -2361,7 +1021,7 @@ def api_proximo_dia(dia_nome):
     )
 
 
-@app.route("/api/proximo-feriado")
+@app.route("/api/proximo-feriado", methods=["GET", "POST"])
 def api_proximo_feriado():
     dados = proximo_feriado()
 
@@ -2379,7 +1039,7 @@ def api_proximo_feriado():
     )
 
 
-@app.route("/api/data/<string:data_texto>")
+@app.route("/api/data/<string:data_texto>", methods=["GET", "POST"])
 def api_data_especifica(data_texto):
     try:
         partes = data_texto.split("-")
@@ -2418,7 +1078,7 @@ def api_data_especifica(data_texto):
         }), 400
 
 
-@app.route("/api/feriados/<int:ano>")
+@app.route("/api/feriados/<int:ano>", methods=["GET", "POST"])
 def api_feriados_ano(ano):
     if ano < 1 or ano > 9999:
         return jsonify({
@@ -2437,7 +1097,7 @@ def api_feriados_ano(ano):
     )
 
 
-@app.route("/api/calendario")
+@app.route("/api/calendario", methods=["GET", "POST"])
 def api_calendario_mes_atual():
     agora = datetime.now(TIMEZONE_BRASILIA)
     calendario_mes = gerar_calendario_mes(agora.year, agora.month)
@@ -2461,7 +1121,7 @@ def api_calendario_mes_atual():
     )
 
 
-@app.route("/api/calendario/<int:ano>")
+@app.route("/api/calendario/<int:ano>", methods=["GET", "POST"])
 def api_calendario_ano(ano):
     if ano < 1 or ano > 9999:
         return jsonify({
@@ -2481,7 +1141,7 @@ def api_calendario_ano(ano):
     )
 
 
-@app.route("/api/calendario/<int:ano>/<int:mes>")
+@app.route("/api/calendario/<int:ano>/<int:mes>", methods=["GET", "POST"])
 def api_calendario_mes(ano, mes):
     if ano < 1 or ano > 9999:
         return jsonify({
