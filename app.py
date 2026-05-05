@@ -14,7 +14,7 @@ LOGO_PEG_URL = "https://magazord-public.s3.sa-east-1.amazonaws.com/pegdobrasil/i
 
 BOTCONVERSA_WEBHOOK_URL = os.getenv(
     "BOTCONVERSA_WEBHOOK_URL",
-    "https://h.integrations-hub.com/wh/38/1lfflc2/2iC6BeqklPyOx_e4aiG6k8OIKBXCdc-V9nb60pBbJTk/"
+    "https://h.integrations-hub.com/wh/38/1lfflc2/Lbu2r8CVFTqHOyt5z11q_Q-o74SWvXd0H2EdxEnPlgE/"
 ).strip()
 
 DIAS_SEMANA = {
